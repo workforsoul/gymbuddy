@@ -10,309 +10,205 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #0a0a0a;
-  --bg2: #141414;
-  --bg3: #1e1e1e;
-  --border: #2a2a2a;
-  --text: #f0f0f0;
-  --text2: #888;
-  --text3: #555;
-  --accent: #c8f53a;
-  --accent2: #a8d020;
-  --red: #ff4444;
-  --orange: #ff8c00;
-  --green: #4caf50;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --bg: #0a0a0a; --bg2: #141414; --bg3: #1e1e1e;
+  --border: #2a2a2a; --text: #f0f0f0; --text2: #888; --text3: #444;
+  --accent: #c8f53a; --red: #ff4444; --orange: #ff8c00; --green: #4caf50;
+  --radius: 12px; --radius-sm: 8px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif}
 
-/* AUTH */
-#auth-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 2rem;
-  background: var(--bg);
-}
-.auth-logo {
-  font-size: 48px;
-  font-weight: 800;
-  letter-spacing: -2px;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.auth-sub {
-  font-size: 14px;
-  color: var(--text2);
-  margin-bottom: 3rem;
-}
-.auth-form { display: flex; flex-direction: column; gap: 12px; }
-.field label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; letter-spacing: 0.5px; text-transform: uppercase; }
-input[type=email], input[type=password], input[type=text], input[type=number], textarea, select {
-  width: 100%;
-  padding: 14px 16px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-.btn {
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  text-align: center;
-}
-.btn:active { opacity: 0.7; }
-.btn-primary { background: var(--accent); color: #000; }
-.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
-.btn-ghost { background: transparent; color: var(--text2); font-size: 14px; padding: 10px; }
-.btn-danger { background: #2a1010; color: var(--red); border: 1px solid #3a1515; }
-.error-msg { color: var(--red); font-size: 13px; text-align: center; padding: 8px; }
+#auth-screen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:2rem;background:var(--bg)}
+.auth-logo{font-size:48px;font-weight:800;letter-spacing:-2px;color:var(--accent);margin-bottom:8px}
+.auth-sub{font-size:14px;color:var(--text2);margin-bottom:3rem}
+.auth-form{display:flex;flex-direction:column;gap:12px}
+.field label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block;letter-spacing:.5px;text-transform:uppercase}
+input[type=email],input[type=password],input[type=text],input[type=number],textarea,select{
+  width:100%;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);font-size:16px;outline:none;-webkit-appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+.btn{padding:16px;border-radius:var(--radius-sm);border:none;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .15s;text-align:center}
+.btn:active{opacity:.7}
+.btn-primary{background:var(--accent);color:#000}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-ghost{background:transparent;color:var(--text2);font-size:14px;padding:10px}
+.error-msg{color:var(--red);font-size:13px;text-align:center;padding:8px}
 
-/* APP SHELL */
-#app { display: none; height: 100vh; flex-direction: column; }
-#app.visible { display: flex; }
-.topbar {
-  padding: 12px 16px 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  flex-shrink: 0;
-}
-.topbar-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-.topbar-sub { font-size: 12px; color: var(--text2); }
-.topbar-right { display: flex; gap: 8px; align-items: center; }
-.icon-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text2); font-size: 13px; cursor: pointer; }
-.icon-btn:active { opacity: 0.7; }
+#app{display:none;height:100vh;flex-direction:column}
+#app.visible{display:flex}
+.topbar{padding:12px 16px 8px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.topbar-title{font-size:18px;font-weight:700;letter-spacing:-.5px}
+.topbar-sub{font-size:12px;color:var(--text2)}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text2);font-size:13px;cursor:pointer}
 
-/* SCREENS */
-.screen { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.screen.active { display: block; }
+.screen{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.screen.active{display:block}
 
-/* HOME */
-.home-header { padding: 20px 16px 12px; }
-.greeting { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
-.greeting-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
-.section-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 16px 16px 8px; }
-.workout-cards { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
-.workout-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.workout-card:active { border-color: var(--accent); }
-.wcard-accent {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-}
-.wcard-A .wcard-accent { background: var(--green); }
-.wcard-B .wcard-accent { background: var(--orange); }
-.wcard-C .wcard-accent { background: var(--red); }
-.wcard-header { display: flex; justify-content: space-between; align-items: flex-start; margin-left: 12px; }
-.wcard-title { font-size: 17px; font-weight: 600; }
-.wcard-badge { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 500; }
-.badge-light { background: #1a2a10; color: #8dcc40; }
-.badge-medium { background: #2a1f00; color: var(--orange); }
-.badge-heavy { background: #2a1010; color: var(--red); }
-.wcard-desc { font-size: 13px; color: var(--text2); margin: 6px 0 0 12px; }
-.wcard-meta { display: flex; gap: 12px; margin: 10px 0 0 12px; }
-.wcard-meta-item { font-size: 12px; color: var(--text3); }
+.home-header{padding:20px 16px 12px}
+.greeting{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.greeting-sub{font-size:14px;color:var(--text2);margin-top:4px}
+.section-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:16px 16px 8px}
+.workout-cards{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.workout-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden}
+.workout-card:active{border-color:var(--accent)}
+.wcard-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.wcard-A .wcard-accent{background:var(--green)}
+.wcard-B .wcard-accent{background:var(--orange)}
+.wcard-C .wcard-accent{background:var(--red)}
+.wcard-D .wcard-accent{background:#7c5cbf}
+.wcard-header{display:flex;justify-content:space-between;align-items:flex-start;margin-left:12px}
+.wcard-title{font-size:17px;font-weight:600}
+.wcard-badge{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:500}
+.badge-light{background:#1a2a10;color:#8dcc40}
+.badge-medium{background:#2a1f00;color:var(--orange)}
+.badge-heavy{background:#2a1010;color:var(--red)}
+.badge-recovery{background:#1a1030;color:#a07de0}
+.wcard-desc{font-size:13px;color:var(--text2);margin:6px 0 0 12px}
+.wcard-meta{display:flex;gap:12px;margin:10px 0 0 12px}
+.wcard-meta-item{font-size:12px;color:var(--text3)}
 
-.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 16px; margin-bottom: 8px; }
-.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
-.stat-val { font-size: 20px; font-weight: 700; color: var(--accent); }
-.stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px;margin-bottom:8px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.stat-val{font-size:20px;font-weight:700;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
 
-.last-workout { margin: 0 16px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-.lw-title { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
-.lw-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-.lw-row:last-child { border-bottom: none; }
-.lw-ex { color: var(--text); }
-.lw-weight { color: var(--accent); font-weight: 600; }
+.last-workout{margin:0 16px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.lw-title{font-size:13px;color:var(--text2);margin-bottom:8px}
+.lw-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.lw-row:last-child{border-bottom:none}
+.lw-weight{color:var(--accent);font-weight:600}
 
-/* WORKOUT SCREEN */
-.workout-header { padding: 16px; border-bottom: 1px solid var(--border); }
-.workout-type-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; margin-bottom: 8px; }
-.workout-title-big { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-.workout-desc { font-size: 13px; color: var(--text2); margin-top: 4px; }
+/* WORKOUT */
+.workout-header{padding:16px;border-bottom:1px solid var(--border)}
+.workout-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:500;margin-bottom:8px}
+.workout-title-big{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.workout-desc{font-size:13px;color:var(--text2);margin-top:4px}
 
-.ex-list { padding: 8px 0 100px; }
-.ex-item { border-bottom: 1px solid var(--border); }
-.ex-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  cursor: pointer;
-}
-.ex-header:active { background: var(--bg2); }
-.ex-name-main { font-size: 15px; font-weight: 500; }
-.ex-muscle { font-size: 12px; color: var(--text3); margin-top: 2px; }
-.ex-summary { font-size: 13px; color: var(--accent); font-weight: 600; }
-.ex-chevron { color: var(--text3); font-size: 12px; transition: transform 0.2s; }
-.ex-chevron.open { transform: rotate(180deg); }
+/* TIMER CONTROLS */
+.timer-controls{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.timer-display{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);letter-spacing:-1px}
+.timer-display.paused{color:var(--text2)}
+.timer-btns{display:flex;gap:8px;margin-left:auto}
+.t-btn{padding:10px 18px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:600;cursor:pointer}
+.t-btn-start{background:var(--accent);color:#000}
+.t-btn-pause{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.t-btn-stop{background:#2a1010;color:var(--red);border:1px solid #3a1515}
 
-.ex-body { display: none; padding: 0 16px 16px; background: var(--bg2); }
-.ex-body.open { display: block; }
+/* REST TIMER */
+.rest-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 16px}
+.rest-bar.active{display:block}
+.rest-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rest-label{font-size:13px;color:var(--text2)}
+.rest-time{font-size:28px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.rest-time.urgent{color:var(--red)}
+.rest-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.rest-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .1s linear}
+.rest-btns{display:flex;gap:8px;margin-top:10px}
+.rest-opt{flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+.rest-opt.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.rest-skip{padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer}
+.sound-toggle{padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-size:13px;cursor:pointer}
 
-.sets-header { display: grid; grid-template-columns: 32px 1fr 1fr 80px; gap: 6px; padding: 8px 0 6px; }
-.sets-header span { font-size: 11px; color: var(--text3); text-transform: uppercase; text-align: center; }
-.sets-header span:first-child { text-align: left; }
+.ex-list{padding:8px 0 120px}
+.ex-item{border-bottom:1px solid var(--border)}
+.ex-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
+.ex-header:active{background:var(--bg2)}
+.ex-name-main{font-size:15px;font-weight:500}
+.ex-muscle{font-size:12px;color:var(--text3);margin-top:2px}
+.ex-summary{font-size:13px;color:var(--accent);font-weight:600}
+.ex-chevron{color:var(--text3);font-size:12px;transition:transform .2s;margin-left:8px}
+.ex-chevron.open{transform:rotate(180deg)}
 
-.set-row { display: grid; grid-template-columns: 32px 1fr 1fr 80px; gap: 6px; align-items: center; margin-bottom: 6px; }
-.set-num { font-size: 13px; color: var(--text3); text-align: center; }
-.set-input {
-  padding: 10px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  text-align: center;
-  width: 100%;
-  outline: none;
-}
-.set-input:focus { border-color: var(--accent); }
-.set-input.filled { border-color: #2a3a10; color: var(--accent); }
-.set-done {
-  padding: 10px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 20px;
-  text-align: center;
-  cursor: pointer;
-  width: 100%;
-}
-.set-done.done { background: #1a2a10; border-color: #2a4010; }
-.add-set-btn { width: 100%; padding: 10px; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text3); font-size: 13px; cursor: pointer; margin-top: 4px; }
-.add-set-btn:active { background: var(--bg3); }
+.ex-body{display:none;padding:0 16px 16px;background:var(--bg2)}
+.ex-body.open{display:block}
 
-.ex-notes { margin-top: 8px; }
-.ex-notes textarea { min-height: 40px; font-size: 14px; background: var(--bg3); }
+.sets-header{display:grid;grid-template-columns:32px 1fr 1fr 80px;gap:6px;padding:8px 0 6px}
+.sets-header span{font-size:11px;color:var(--text3);text-transform:uppercase;text-align:center}
+.sets-header span:first-child{text-align:left}
+.set-row{display:grid;grid-template-columns:32px 1fr 1fr 80px;gap:6px;align-items:center;margin-bottom:6px}
+.set-num{font-size:13px;color:var(--text3);text-align:center}
+.set-input{padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:16px;text-align:center;width:100%;outline:none}
+.set-input:focus{border-color:var(--accent)}
+.set-input.filled{border-color:#2a3a10;color:var(--accent)}
+.set-done{padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:20px;text-align:center;cursor:pointer;width:100%}
+.set-done.done{background:#1a2a10;border-color:#2a4010}
+.add-set-btn{width:100%;padding:10px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:13px;cursor:pointer;margin-top:4px}
+.hint-text{font-size:12px;color:var(--text3);margin-top:8px}
 
-/* BOTTOM BAR */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0; right: 0;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  display: none;
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-  gap: 10px;
-  z-index: 100;
-}
-.bottom-bar.visible { display: flex; }
-.bottom-timer { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
-.timer-val { font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.bottom-finish{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:none;z-index:100}
+.bottom-finish.visible{display:block}
 
-/* NAV */
-.nav-bar {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 0; cursor: pointer; gap: 3px; }
-.nav-icon { font-size: 22px; }
-.nav-label { font-size: 10px; color: var(--text3); }
-.nav-item.active .nav-label { color: var(--accent); }
-.nav-item.active .nav-icon { filter: none; }
+.nav-bar{background:var(--bg);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;cursor:pointer;gap:3px}
+.nav-icon{font-size:22px}
+.nav-label{font-size:10px;color:var(--text3)}
+.nav-item.active .nav-label{color:var(--accent)}
 
-/* HISTORY */
-.history-list { padding: 8px 16px 100px; display: flex; flex-direction: column; gap: 8px; }
-.hist-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; }
-.hist-card:active { border-color: var(--accent); }
-.hist-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.hist-type { font-size: 16px; font-weight: 600; }
-.hist-date { font-size: 13px; color: var(--text2); }
-.hist-sets { font-size: 12px; color: var(--text3); }
-.hist-top { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-.hist-pill { font-size: 11px; padding: 3px 8px; background: var(--bg3); border-radius: 99px; color: var(--text2); }
+.history-list{padding:8px 16px 100px;display:flex;flex-direction:column;gap:8px}
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.hist-header{display:flex;justify-content:space-between;margin-bottom:8px}
+.hist-type{font-size:16px;font-weight:600}
+.hist-date{font-size:13px;color:var(--text2)}
+.hist-sets{font-size:12px;color:var(--text3)}
+.hist-top{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.hist-pill{font-size:11px;padding:3px 8px;background:var(--bg3);border-radius:99px;color:var(--text2)}
 
-/* FINISH MODAL */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: flex-end;
-  z-index: 200;
-}
-.modal-overlay.open { display: flex; }
-.modal-sheet {
-  background: var(--bg2);
-  border-radius: 20px 20px 0 0;
-  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
-  width: 100%;
-  border-top: 1px solid var(--border);
-}
-.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.modal-sub { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
-.modal-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-.feel-row { display: flex; gap: 8px; }
-.feel-btn { flex: 1; padding: 12px 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 20px; text-align: center; cursor: pointer; }
-.feel-btn.sel { border-color: var(--accent); background: #1a2a00; }
-.rating-row { display: flex; gap: 6px; }
-.rating-btn { flex: 1; padding: 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; text-align: center; cursor: pointer; color: var(--text2); }
-.rating-btn.sel { background: var(--accent); color: #000; border-color: var(--accent); }
-.modal-btns { display: flex; gap: 10px; }
-.modal-btns .btn { flex: 1; }
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:flex-end;z-index:200}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--bg2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));width:100%;border-top:1px solid var(--border)}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:14px;color:var(--text2);margin-bottom:20px}
+.modal-fields{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.feel-row{display:flex;gap:8px}
+.feel-btn{flex:1;padding:12px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:20px;text-align:center;cursor:pointer}
+.feel-btn.sel{border-color:var(--accent);background:#1a2a00}
+.rating-row{display:flex;gap:6px}
+.rating-btn{flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-align:center;cursor:pointer;color:var(--text2)}
+.rating-btn.sel{background:var(--accent);color:#000;border-color:var(--accent)}
+.modal-btns{display:flex;gap:10px}
+.modal-btns .btn{flex:1}
 
-/* LOADING */
-.loader { display: flex; align-items: center; justify-content: center; height: 100px; color: var(--text3); font-size: 14px; }
-
-/* EMPTY */
-.empty-state { padding: 40px 20px; text-align: center; color: var(--text3); }
-.empty-icon { font-size: 48px; margin-bottom: 12px; }
-.empty-text { font-size: 15px; }
-
-select option { background: var(--bg3); }
+.loader{display:flex;align-items:center;justify-content:center;height:100px;color:var(--text3);font-size:14px}
+.empty-state{padding:40px 20px;text-align:center;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-logo">GYM</div>
   <div class="auth-sub">Дневник тренировок</div>
   <div class="auth-form">
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="your@email.com" autocomplete="email">
-    </div>
-    <div class="field">
-      <label>Пароль</label>
-      <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
-    </div>
+    <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="your@email.com" autocomplete="email"></div>
+    <div class="field"><label>Пароль</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="auth-error" class="error-msg" style="display:none"></div>
     <button class="btn btn-primary" onclick="signIn()">Войти</button>
     <button class="btn btn-ghost" onclick="signUp()">Нет аккаунта? Зарегистрироваться</button>
   </div>
 </div>
 
-<!-- APP -->
+<!-- REST TIMER BAR -->
+<div class="rest-bar" id="rest-bar">
+  <div class="rest-header">
+    <div>
+      <div class="rest-label">Отдых</div>
+      <div class="rest-time" id="rest-time-display">60</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
+      <button class="rest-skip" onclick="skipRest()">Пропустить</button>
+    </div>
+  </div>
+  <div class="rest-progress"><div class="rest-fill" id="rest-fill"></div></div>
+  <div class="rest-btns">
+    <button class="rest-opt active" data-sec="60" onclick="setRestTime(60,this)">60 сек</button>
+    <button class="rest-opt" data-sec="90" onclick="setRestTime(90,this)">90 сек</button>
+    <button class="rest-opt" data-sec="120" onclick="setRestTime(120,this)">2 мин</button>
+    <button class="rest-opt" data-sec="180" onclick="setRestTime(180,this)">3 мин</button>
+  </div>
+</div>
+
 <div id="app">
   <div class="topbar">
     <div>
@@ -329,75 +225,51 @@ select option { background: var(--bg3); }
   <div class="screen active" id="screen-home">
     <div class="home-header">
       <div class="greeting" id="greeting">Привет!</div>
-      <div class="greeting-sub" id="greeting-sub">Выбери тренировку или посмотри историю</div>
+      <div class="greeting-sub">Выбери тренировку</div>
     </div>
-
     <div class="section-label">Статистика</div>
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-val" id="stat-total">0</div>
-        <div class="stat-label">Тренировок</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-week">0</div>
-        <div class="stat-label">На этой неделе</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-streak">0</div>
-        <div class="stat-label">Дней подряд</div>
-      </div>
+      <div class="stat-card"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Тренировок</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-week">—</div><div class="stat-label">На неделе</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-vol">—</div><div class="stat-label">Тоннаж</div></div>
     </div>
-
     <div class="section-label">Начать тренировку</div>
     <div class="workout-cards">
       <div class="workout-card wcard-A" onclick="startWorkout('A')">
         <div class="wcard-accent"></div>
         <div class="wcard-header">
-          <div>
-            <div class="wcard-title">Тренировка A</div>
-            <div class="wcard-desc">Фулбади · Лёгкая</div>
-          </div>
+          <div><div class="wcard-title">Тренировка A</div><div class="wcard-desc">Фулбади · Лёгкая</div></div>
           <div class="wcard-badge badge-light">Лёгкая</div>
         </div>
-        <div class="wcard-meta">
-          <div class="wcard-meta-item">9 упражнений</div>
-          <div class="wcard-meta-item">45–55 мин</div>
-        </div>
+        <div class="wcard-meta"><div class="wcard-meta-item">9 упражнений</div><div class="wcard-meta-item">45–55 мин</div></div>
       </div>
       <div class="workout-card wcard-B" onclick="startWorkout('B')">
         <div class="wcard-accent"></div>
         <div class="wcard-header">
-          <div>
-            <div class="wcard-title">Тренировка B</div>
-            <div class="wcard-desc">Фулбади · Средняя</div>
-          </div>
+          <div><div class="wcard-title">Тренировка B</div><div class="wcard-desc">Фулбади · Средняя</div></div>
           <div class="wcard-badge badge-medium">Средняя</div>
         </div>
-        <div class="wcard-meta">
-          <div class="wcard-meta-item">11 упражнений</div>
-          <div class="wcard-meta-item">60–75 мин</div>
-        </div>
+        <div class="wcard-meta"><div class="wcard-meta-item">12 упражнений</div><div class="wcard-meta-item">60–75 мин</div></div>
       </div>
       <div class="workout-card wcard-C" onclick="startWorkout('C')">
         <div class="wcard-accent"></div>
         <div class="wcard-header">
-          <div>
-            <div class="wcard-title">Тренировка C</div>
-            <div class="wcard-desc">Фулбади · Тяжёлая</div>
-          </div>
+          <div><div class="wcard-title">Тренировка C</div><div class="wcard-desc">Фулбади · Тяжёлая</div></div>
           <div class="wcard-badge badge-heavy">Тяжёлая</div>
         </div>
-        <div class="wcard-meta">
-          <div class="wcard-meta-item">12 упражнений</div>
-          <div class="wcard-meta-item">70–90 мин</div>
+        <div class="wcard-meta"><div class="wcard-meta-item">13 упражнений</div><div class="wcard-meta-item">70–90 мин</div></div>
+      </div>
+      <div class="workout-card wcard-D" onclick="startWorkout('D')">
+        <div class="wcard-accent"></div>
+        <div class="wcard-header">
+          <div><div class="wcard-title">Тренировка D</div><div class="wcard-desc">Восстановительная · Сегодня</div></div>
+          <div class="wcard-badge badge-recovery">Восст.</div>
         </div>
+        <div class="wcard-meta"><div class="wcard-meta-item">9 упражнений</div><div class="wcard-meta-item">~60 мин</div></div>
       </div>
     </div>
-
     <div class="section-label">Последняя тренировка</div>
-    <div id="last-workout-block" style="padding: 0 16px 100px">
-      <div class="loader">Загрузка...</div>
-    </div>
+    <div id="last-workout-block" style="padding:0 16px 100px"><div class="loader">Загрузка...</div></div>
   </div>
 
   <!-- WORKOUT -->
@@ -407,38 +279,32 @@ select option { background: var(--bg3); }
       <div class="workout-title-big" id="w-title"></div>
       <div class="workout-desc" id="w-desc"></div>
     </div>
-    <div class="ex-list" id="ex-list"></div>
-
-    <div class="bottom-bar visible" id="workout-bottom">
-      <div class="bottom-timer">
-        <div>
-          <div style="font-size:11px;color:var(--text3)">Время</div>
-          <div class="timer-val" id="timer-val">00:00</div>
-        </div>
+    <div class="timer-controls">
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:2px">ВРЕМЯ</div>
+        <div class="timer-display paused" id="timer-val">00:00</div>
       </div>
-      <div style="flex:1"></div>
-      <button class="btn btn-primary" style="padding:12px 24px" onclick="openFinishModal()">Завершить</button>
+      <div class="timer-btns">
+        <button class="t-btn t-btn-start" id="btn-start" onclick="timerStart()">▶ Старт</button>
+        <button class="t-btn t-btn-pause" id="btn-pause" style="display:none" onclick="timerPause()">⏸ Пауза</button>
+        <button class="t-btn t-btn-stop" id="btn-stop" style="display:none" onclick="openFinishModal()">■ Завершить</button>
+      </div>
+    </div>
+    <div class="ex-list" id="ex-list"></div>
+    <div class="bottom-finish visible" id="workout-bottom">
+      <button class="btn btn-primary" style="width:100%" onclick="openFinishModal()">Завершить тренировку</button>
     </div>
   </div>
 
   <!-- HISTORY -->
   <div class="screen" id="screen-history">
-    <div class="section-label" style="padding-top:20px">История тренировок</div>
-    <div class="history-list" id="history-list">
-      <div class="loader">Загрузка...</div>
-    </div>
+    <div class="section-label" style="padding-top:20px">История</div>
+    <div class="history-list" id="history-list"><div class="loader">Загрузка...</div></div>
   </div>
 
-  <!-- NAV -->
   <div class="nav-bar" id="main-nav">
-    <div class="nav-item active" onclick="switchNav('home',this)">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-label">Главная</div>
-    </div>
-    <div class="nav-item" onclick="switchNav('history',this)">
-      <div class="nav-icon">📋</div>
-      <div class="nav-label">История</div>
-    </div>
+    <div class="nav-item active" onclick="switchNav('home',this)"><div class="nav-icon">🏠</div><div class="nav-label">Главная</div></div>
+    <div class="nav-item" onclick="switchNav('history',this)"><div class="nav-icon">📋</div><div class="nav-label">История</div></div>
   </div>
 </div>
 
@@ -450,20 +316,20 @@ select option { background: var(--bg3); }
     <div class="modal-fields">
       <div>
         <div class="section-label" style="padding:0 0 8px">Самочувствие</div>
-        <div class="feel-row" id="feel-row">
+        <div class="feel-row">
           <button class="feel-btn" data-val="1" onclick="selFeel(this)">😴</button>
           <button class="feel-btn" data-val="2" onclick="selFeel(this)">😐</button>
-          <button class="feel-btn" data-val="3" onclick="selFeel(this)">💪</button>
+          <button class="feel-btn sel" data-val="3" onclick="selFeel(this)">💪</button>
           <button class="feel-btn" data-val="4" onclick="selFeel(this)">🔥</button>
         </div>
       </div>
       <div>
-        <div class="section-label" style="padding:0 0 8px">Оценка тренировки</div>
-        <div class="rating-row" id="rating-row">
+        <div class="section-label" style="padding:0 0 8px">Оценка</div>
+        <div class="rating-row">
           <button class="rating-btn" data-val="1" onclick="selRating(this)">1</button>
           <button class="rating-btn" data-val="2" onclick="selRating(this)">2</button>
           <button class="rating-btn" data-val="3" onclick="selRating(this)">3</button>
-          <button class="rating-btn" data-val="4" onclick="selRating(this)">4</button>
+          <button class="rating-btn sel" data-val="4" onclick="selRating(this)">4</button>
           <button class="rating-btn" data-val="5" onclick="selRating(this)">5</button>
         </div>
       </div>
@@ -473,7 +339,7 @@ select option { background: var(--bg3); }
       </div>
       <div>
         <div class="section-label" style="padding:0 0 8px">Заметки</div>
-        <textarea id="finish-notes" placeholder="Как прошло, что болело, что удивило..."></textarea>
+        <textarea id="finish-notes" placeholder="Как прошло, что болело..."></textarea>
       </div>
     </div>
     <div class="modal-btns">
@@ -488,67 +354,75 @@ const SUPABASE_URL = 'https://kysrgqkcpjeukdkbtvxp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5c3JncWtjcGpldWtka2J0dnhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDIwNDcsImV4cCI6MjA5Nzg3ODA0N30.9f1Vgz5ak94pcJzAmxSHZN2aMtjsDsrUS-NPoTlmrTs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// WORKOUT TEMPLATES
 const WORKOUTS = {
   A: {
-    title: 'Тренировка A — Лёгкая',
-    desc: 'Фулбади · 50–60% от рабочих весов · 45–55 мин',
-    badge: '🟢 Лёгкая',
-    badgeClass: 'badge-light',
-    intensity: 'light',
+    title: 'Тренировка A — Лёгкая', desc: 'Фулбади · 50–60% · 45–55 мин',
+    badge: '🟢 Лёгкая', badgeClass: 'badge-light', intensity: 'light',
     exercises: [
-      { name: 'Кардио (разминка)', muscle: '', sets: 1, reps: '5 мин', weightHint: 'пульс 150' },
-      { name: 'Жим штанги лёжа', muscle: 'Грудь · Трицепс', sets: 3, reps: '12–15', weightHint: '52 кг' },
-      { name: 'Тяга горизонтального блока', muscle: 'Спина · Бицепс', sets: 3, reps: '12–15', weightHint: '60–65 кг', supersetWith: 'Жим штанги лёжа' },
-      { name: 'Гак-присед', muscle: 'Квадрицепс · Ягодицы', sets: 3, reps: '12–15', weightHint: '58–60 кг' },
-      { name: 'Жим гантелей в наклоне', muscle: 'Грудь · Трицепс', sets: 3, reps: '12', weightHint: '2×16 кг' },
-      { name: 'Жим Смита сидя (плечи)', muscle: 'Плечи · Трицепс', sets: 3, reps: '12–15', weightHint: 'лёгкий — техника' },
-      { name: 'Трицепс на кроссовере (канат)', muscle: 'Трицепс', sets: 3, reps: '15', weightHint: '20–22 кг' },
-      { name: 'Разведение ног', muscle: 'Приводящие', sets: 3, reps: '15–20', weightHint: 'рабочий' },
-      { name: 'Гиперэкстензия', muscle: 'Поясница · Ягодицы', sets: 3, reps: '15', weightHint: 'без веса' },
+      {name:'Кардио (разминка)',muscle:'',sets:0,reps:'5 мин',hint:'пульс 150+',weight:0},
+      {name:'Жим штанги лёжа',muscle:'Грудь · Трицепс',sets:3,reps:'12–15',hint:'~52 кг',weight:52},
+      {name:'Тяга горизонтального блока',muscle:'Спина · Бицепс',sets:3,reps:'12–15',hint:'суперсет с жимом · 60 кг',weight:60},
+      {name:'Гак-присед',muscle:'Квадрицепс · Ягодицы',sets:3,reps:'12–15',hint:'~60 кг',weight:60},
+      {name:'Жим гантелей в наклоне',muscle:'Грудь · Трицепс',sets:3,reps:'12',hint:'2×16 кг',weight:16},
+      {name:'Жим Смита сидя (плечи)',muscle:'Плечи · Трицепс',sets:3,reps:'12–15',hint:'25 кг — техника',weight:25},
+      {name:'Трицепс на кроссовере (канат)',muscle:'Трицепс',sets:3,reps:'15',hint:'20 кг',weight:20},
+      {name:'Разведение ног',muscle:'Приводящие',sets:3,reps:'15–20',hint:'48 кг (105 фунт)',weight:48},
+      {name:'Гиперэкстензия',muscle:'Поясница · Ягодицы',sets:3,reps:'15',hint:'без веса',weight:0},
     ]
   },
   B: {
-    title: 'Тренировка B — Средняя',
-    desc: 'Фулбади · 75–80% от рабочих весов · 60–75 мин',
-    badge: '🟠 Средняя',
-    badgeClass: 'badge-medium',
-    intensity: 'medium',
+    title: 'Тренировка B — Средняя', desc: 'Фулбади · 75–80% · 60–75 мин',
+    badge: '🟠 Средняя', badgeClass: 'badge-medium', intensity: 'medium',
     exercises: [
-      { name: 'Кардио (разминка)', muscle: '', sets: 1, reps: '5 мин', weightHint: 'пульс 150' },
-      { name: 'Гак-присед', muscle: 'Квадрицепс · Ягодицы', sets: 4, reps: '10–12', weightHint: '67–70 кг' },
-      { name: 'Жим штанги лёжа', muscle: 'Грудь · Трицепс', sets: 4, reps: '10–12', weightHint: '75–77 кг' },
-      { name: 'Подтягивания', muscle: 'Спина · Бицепс', sets: 4, reps: '8–10', weightHint: 'своё тело' },
-      { name: 'Жим гантелей в наклоне', muscle: 'Грудь · Трицепс', sets: 3, reps: '10', weightHint: '2×18–20 кг' },
-      { name: 'Тяга горизонтального блока', muscle: 'Спина · Бицепс', sets: 4, reps: '10', weightHint: '72–75 кг' },
-      { name: 'Жим Смита сидя (плечи)', muscle: 'Плечи · Трицепс', sets: 3, reps: '10–12', weightHint: '30–35 кг' },
-      { name: 'Бабочка (тренажёр)', muscle: 'Грудь', sets: 3, reps: '12', weightHint: '50 кг' },
-      { name: 'Трицепс на кроссовере (канат)', muscle: 'Трицепс', sets: 4, reps: '12', weightHint: '26–28 кг' },
-      { name: 'Молотки', muscle: 'Бицепс · Брахиалис', sets: 3, reps: '10', weightHint: '12–14 кг ⚠ макс' },
-      { name: 'Разведение + сведение ног', muscle: 'Приводящие · Отводящие', sets: 3, reps: '12–15', weightHint: 'рабочий' },
-      { name: 'Гиперэкстензия', muscle: 'Поясница', sets: 3, reps: '15', weightHint: '5–10 кг' },
+      {name:'Кардио (разминка)',muscle:'',sets:0,reps:'5 мин',hint:'пульс 150+',weight:0},
+      {name:'Гак-присед',muscle:'Квадрицепс · Ягодицы',sets:4,reps:'10–12',hint:'67–70 кг',weight:68},
+      {name:'Жим штанги лёжа',muscle:'Грудь · Трицепс',sets:4,reps:'10–12',hint:'75–77 кг',weight:75},
+      {name:'Подтягивания',muscle:'Спина · Бицепс',sets:4,reps:'8–10',hint:'своё тело (76 кг)',weight:0},
+      {name:'Жим гантелей в наклоне',muscle:'Грудь · Трицепс',sets:3,reps:'10',hint:'2×18–20 кг',weight:18},
+      {name:'Тяга горизонтального блока',muscle:'Спина · Бицепс',sets:4,reps:'10',hint:'72–75 кг',weight:72},
+      {name:'Жим Смита сидя (плечи)',muscle:'Плечи · Трицепс',sets:3,reps:'10–12',hint:'30–35 кг',weight:30},
+      {name:'Бабочка (тренажёр)',muscle:'Грудь',sets:3,reps:'12',hint:'50 кг',weight:50},
+      {name:'Трицепс на кроссовере (канат)',muscle:'Трицепс',sets:4,reps:'12',hint:'26–28 кг',weight:26},
+      {name:'Молотки',muscle:'Бицепс · Брахиалис',sets:3,reps:'10',hint:'12–14 кг ⚠ максимум',weight:12},
+      {name:'Разведение ног',muscle:'Приводящие',sets:3,reps:'12–15',hint:'48 кг',weight:48},
+      {name:'Сведение ног',muscle:'Отводящие',sets:3,reps:'12–15',hint:'рабочий вес',weight:0},
+      {name:'Гиперэкстензия',muscle:'Поясница',sets:3,reps:'15',hint:'5–10 кг',weight:7},
     ]
   },
   C: {
-    title: 'Тренировка C — Тяжёлая',
-    desc: 'Фулбади · 85–90%+ · 70–90 мин · После — 2 дня отдыха',
-    badge: '🔴 Тяжёлая',
-    badgeClass: 'badge-heavy',
-    intensity: 'heavy',
+    title: 'Тренировка C — Тяжёлая', desc: 'Фулбади · 85–90%+ · 70–90 мин',
+    badge: '🔴 Тяжёлая', badgeClass: 'badge-heavy', intensity: 'heavy',
     exercises: [
-      { name: 'Кардио (разминка)', muscle: '', sets: 1, reps: '5 мин', weightHint: 'пульс 150' },
-      { name: 'Гак-присед', muscle: 'Квадрицепс · Ягодицы', sets: 5, reps: '5–6', weightHint: '77–80 кг' },
-      { name: 'Жим штанги лёжа', muscle: 'Грудь · Трицепс', sets: 5, reps: '5–6', weightHint: '80–82 кг' },
-      { name: 'Тяга горизонтального блока', muscle: 'Спина · Бицепс', sets: 5, reps: '6–8', weightHint: '78–80 кг' },
-      { name: 'Подтягивания', muscle: 'Спина · Бицепс', sets: 5, reps: 'до отказа −1', weightHint: 'своё тело' },
-      { name: 'Жим гантелей в наклоне', muscle: 'Грудь · Трицепс', sets: 4, reps: '8', weightHint: '2×20 кг' },
-      { name: 'Жим Смита сидя (плечи)', muscle: 'Плечи · Трицепс', sets: 4, reps: '8', weightHint: '35–40 кг' },
-      { name: 'Тяга штанги к подбородку', muscle: 'Плечи · Трапеции', sets: 4, reps: '8', weightHint: '30 кг' },
-      { name: 'Трицепс на кроссовере (канат)', muscle: 'Трицепс', sets: 4, reps: '10', weightHint: '30–35 кг' },
-      { name: 'Разгибания ног', muscle: 'Квадрицепс', sets: 4, reps: '10', weightHint: 'рабочий' },
-      { name: 'Сгибания ног', muscle: 'Бицепс бедра', sets: 4, reps: '10', weightHint: 'рабочий' },
-      { name: 'Разведение ног', muscle: 'Приводящие', sets: 3, reps: '12', weightHint: 'рабочий' },
-      { name: 'Икры в тренажёре', muscle: 'Икры', sets: 4, reps: '20', weightHint: 'рабочий' },
+      {name:'Кардио (разминка)',muscle:'',sets:0,reps:'5 мин',hint:'пульс 150+',weight:0},
+      {name:'Гак-присед',muscle:'Квадрицепс · Ягодицы',sets:5,reps:'5–6',hint:'77–80 кг',weight:78},
+      {name:'Жим штанги лёжа',muscle:'Грудь · Трицепс',sets:5,reps:'5–6',hint:'80–82 кг',weight:80},
+      {name:'Тяга горизонтального блока',muscle:'Спина · Бицепс',sets:5,reps:'6–8',hint:'78–80 кг',weight:78},
+      {name:'Подтягивания',muscle:'Спина · Бицепс',sets:5,reps:'до отказа −1',hint:'своё тело',weight:0},
+      {name:'Жим гантелей в наклоне',muscle:'Грудь · Трицепс',sets:4,reps:'8',hint:'2×20 кг',weight:20},
+      {name:'Жим Смита сидя (плечи)',muscle:'Плечи · Трицепс',sets:4,reps:'8',hint:'35–40 кг',weight:37},
+      {name:'Тяга штанги к подбородку',muscle:'Плечи · Трапеции',sets:4,reps:'8',hint:'30 кг',weight:30},
+      {name:'Трицепс на кроссовере (канат)',muscle:'Трицепс',sets:4,reps:'10',hint:'28–35 кг',weight:28},
+      {name:'Разгибания ног',muscle:'Квадрицепс',sets:4,reps:'10',hint:'рабочий вес',weight:0},
+      {name:'Сгибания ног',muscle:'Бицепс бедра',sets:4,reps:'10',hint:'рабочий вес',weight:0},
+      {name:'Разведение ног',muscle:'Приводящие',sets:3,reps:'12',hint:'48 кг',weight:48},
+      {name:'Икры в тренажёре',muscle:'Икры',sets:4,reps:'20',hint:'рабочий вес',weight:0},
+    ]
+  },
+  D: {
+    title: 'Тренировка D — Восстановительная', desc: 'Фулбади · Акцент грудь + квадрицепс · ~60 мин',
+    badge: '🟣 Восст.', badgeClass: 'badge-recovery', intensity: 'recovery',
+    exercises: [
+      {name:'Кардио (разминка)',muscle:'',sets:0,reps:'5 мин',hint:'пульс 150+',weight:0},
+      {name:'Жим штанги лёжа',muscle:'Грудь · Трицепс',sets:4,reps:'10',hint:'75 кг',weight:75},
+      {name:'Жим гантелей в наклоне',muscle:'Грудь · Трицепс',sets:3,reps:'10',hint:'2×18 кг',weight:18},
+      {name:'Бабочка (тренажёр)',muscle:'Грудь',sets:3,reps:'12',hint:'50 кг',weight:50},
+      {name:'Разгибания ног',muscle:'Квадрицепс',sets:4,reps:'15',hint:'рабочий вес',weight:0},
+      {name:'Тяга вертикального блока широким хватом',muscle:'Спина · Бицепс',sets:4,reps:'10',hint:'60 кг',weight:60},
+      {name:'Подтягивания',muscle:'Спина · Бицепс',sets:3,reps:'8',hint:'своё тело',weight:0},
+      {name:'Молотки',muscle:'Бицепс · Брахиалис',sets:3,reps:'10',hint:'12 кг ⚠ максимум 14',weight:12},
+      {name:'Тяга штанги к подбородку',muscle:'Плечи · Трапеции',sets:3,reps:'10',hint:'28 кг',weight:28},
+      {name:'Разведение ног',muscle:'Приводящие',sets:3,reps:'15',hint:'48 кг',weight:48},
+      {name:'Гиперэкстензия',muscle:'Поясница',sets:3,reps:'15',hint:'без веса',weight:0},
     ]
   }
 };
@@ -558,44 +432,45 @@ let currentUser = null;
 let currentWorkout = null;
 let timerInterval = null;
 let timerSeconds = 0;
+let timerRunning = false;
 let workoutSets = {};
-let feelingVal = null;
-let ratingVal = null;
+let feelingVal = 3;
+let ratingVal = 4;
+let restInterval = null;
+let restTotal = 60;
+let restRemaining = 0;
+let soundOn = true;
+let audioCtx = null;
 
 // AUTH
 async function signIn() {
   const email = document.getElementById('auth-email').value;
   const pass = document.getElementById('auth-password').value;
+  if (!email || !pass) { showAuthError('Введи email и пароль'); return; }
   showAuthError('');
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  const {error} = await sb.auth.signInWithPassword({email, password: pass});
   if (error) showAuthError(error.message);
 }
 async function signUp() {
   const email = document.getElementById('auth-email').value;
   const pass = document.getElementById('auth-password').value;
   if (!email || !pass) { showAuthError('Введи email и пароль'); return; }
-  const { error } = await sb.auth.signUp({ email, password: pass });
+  const {error} = await sb.auth.signUp({email, password: pass});
   if (error) showAuthError(error.message);
   else showAuthError('Проверь почту для подтверждения!');
 }
-async function signOut() {
-  await sb.auth.signOut();
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('app').classList.remove('visible');
-}
+async function signOut() { await sb.auth.signOut(); location.reload(); }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
 }
 
-// SESSION
 sb.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     currentUser = session.user;
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    document.getElementById('greeting').textContent = 'Привет, ' + (session.user.email.split('@')[0]) + '!';
+    document.getElementById('greeting').textContent = 'Привет, ' + session.user.email.split('@')[0] + '!';
     loadHomeStats();
     loadLastWorkout();
   }
@@ -613,21 +488,24 @@ function switchNav(screen, el) {
   if (screen === 'history') loadHistory();
 }
 function goHome() {
+  stopTimer();
+  skipRest();
+  currentWorkout = null;
+  workoutSets = {};
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-home').classList.add('active');
   document.getElementById('topbar-title').textContent = 'GYM';
+  document.getElementById('topbar-sub').textContent = '';
   document.getElementById('back-btn').style.display = 'none';
   document.getElementById('main-nav').style.display = 'flex';
-  stopTimer();
-  currentWorkout = null;
-  workoutSets = {};
 }
 
-// START WORKOUT
+// WORKOUT
 function startWorkout(type) {
   currentWorkout = type;
   workoutSets = {};
   timerSeconds = 0;
+  timerRunning = false;
 
   const w = WORKOUTS[type];
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -635,7 +513,7 @@ function startWorkout(type) {
   document.getElementById('main-nav').style.display = 'none';
   document.getElementById('back-btn').style.display = 'block';
   document.getElementById('topbar-title').textContent = 'Тренировка ' + type;
-  document.getElementById('topbar-sub').textContent = w.intensity === 'light' ? 'Лёгкая' : w.intensity === 'medium' ? 'Средняя' : 'Тяжёлая';
+  document.getElementById('topbar-sub').textContent = w.intensity;
 
   const badge = document.getElementById('w-badge');
   badge.textContent = w.badge;
@@ -643,102 +521,96 @@ function startWorkout(type) {
   document.getElementById('w-title').textContent = w.title;
   document.getElementById('w-desc').textContent = w.desc;
 
+  document.getElementById('timer-val').textContent = '00:00';
+  document.getElementById('timer-val').classList.add('paused');
+  document.getElementById('btn-start').style.display = 'inline-block';
+  document.getElementById('btn-pause').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'none';
+
   const list = document.getElementById('ex-list');
   list.innerHTML = '';
   w.exercises.forEach((ex, idx) => {
     workoutSets[idx] = [];
-    const defaultSets = ex.name.includes('Кардио') ? 0 : ex.sets;
-    for (let i = 0; i < defaultSets; i++) {
-      workoutSets[idx].push({ weight: '', reps: '', done: false });
+    if (ex.sets > 0) {
+      for (let i = 0; i < ex.sets; i++) {
+        workoutSets[idx].push({weight: ex.weight || '', reps: '', done: false});
+      }
     }
     list.appendChild(buildExItem(ex, idx));
   });
-
-  startTimer();
 }
 
 function buildExItem(ex, idx) {
   const div = document.createElement('div');
   div.className = 'ex-item';
-  div.id = 'ex-item-' + idx;
-
-  const isCardio = ex.name.includes('Кардио');
-
+  const isCardio = ex.sets === 0;
   div.innerHTML = `
     <div class="ex-header" onclick="toggleEx(${idx})">
       <div>
-        <div class="ex-name-main">${ex.name}${ex.supersetWith ? ' <span style="font-size:11px;color:var(--orange)">суперсет</span>' : ''}</div>
+        <div class="ex-name-main">${ex.name}</div>
         ${ex.muscle ? `<div class="ex-muscle">${ex.muscle}</div>` : ''}
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="ex-summary" id="ex-summary-${idx}">${isCardio ? ex.reps : ex.sets + '×' + ex.reps}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="ex-summary" id="ex-sum-${idx}">${isCardio ? ex.reps : ex.sets + ' подх'}</div>
         <div class="ex-chevron" id="ex-chev-${idx}">▼</div>
       </div>
     </div>
     <div class="ex-body" id="ex-body-${idx}">
-      ${isCardio ? `<div style="font-size:13px;color:var(--text2);padding:4px 0 8px">Ориентир: ${ex.weightHint}</div>` : `
-      <div class="sets-header">
-        <span>Подх</span><span>Вес (кг)</span><span>Повт</span><span>Готово</span>
-      </div>
+      ${isCardio ? `<div style="font-size:13px;color:var(--text2);padding:4px 0 8px">${ex.hint}</div>` : `
+      <div class="sets-header"><span>№</span><span>Вес (кг)</span><span>Повт</span><span>Готово</span></div>
       <div id="sets-${idx}"></div>
       <button class="add-set-btn" onclick="addSet(${idx})">+ Добавить подход</button>
-      <div style="font-size:12px;color:var(--text3);margin-top:8px">Ориентир: ${ex.weightHint}</div>
+      <div class="hint-text">Ориентир: ${ex.hint}</div>
       `}
-    </div>
-  `;
-
-  if (!isCardio) {
-    setTimeout(() => renderSets(idx), 0);
-  }
+    </div>`;
+  if (!isCardio) setTimeout(() => renderSets(idx), 0);
   return div;
 }
 
 function renderSets(idx) {
-  const container = document.getElementById('sets-' + idx);
-  if (!container) return;
-  container.innerHTML = '';
+  const c = document.getElementById('sets-' + idx);
+  if (!c) return;
+  c.innerHTML = '';
   workoutSets[idx].forEach((s, si) => {
     const row = document.createElement('div');
     row.className = 'set-row';
     row.innerHTML = `
-      <div class="set-num">${si + 1}</div>
-      <input class="set-input${s.weight ? ' filled' : ''}" type="number" inputmode="decimal" placeholder="кг" value="${s.weight}"
-        onchange="updateSet(${idx},${si},'weight',this.value)" oninput="updateSet(${idx},${si},'weight',this.value)">
-      <input class="set-input${s.reps ? ' filled' : ''}" type="number" inputmode="numeric" placeholder="повт" value="${s.reps}"
-        onchange="updateSet(${idx},${si},'reps',this.value)" oninput="updateSet(${idx},${si},'reps',this.value)">
-      <button class="set-done${s.done ? ' done' : ''}" onclick="toggleDone(${idx},${si})">
-        ${s.done ? '✅' : '⬜'}
-      </button>
-    `;
-    container.appendChild(row);
+      <div class="set-num">${si+1}</div>
+      <input class="set-input${s.weight?' filled':''}" type="number" inputmode="decimal" placeholder="кг" value="${s.weight}"
+        oninput="updateSet(${idx},${si},'weight',this.value)">
+      <input class="set-input${s.reps?' filled':''}" type="number" inputmode="numeric" placeholder="повт" value="${s.reps}"
+        oninput="updateSet(${idx},${si},'reps',this.value)">
+      <button class="set-done${s.done?' done':''}" onclick="doneSet(${idx},${si})">${s.done?'✅':'⬜'}</button>`;
+    c.appendChild(row);
   });
   updateSummary(idx);
 }
 
 function updateSet(idx, si, field, val) {
   workoutSets[idx][si][field] = val;
-  const inp = document.querySelectorAll(`#sets-${idx} .set-row`)[si]?.querySelectorAll('.set-input')[field === 'weight' ? 0 : 1];
+  const rows = document.querySelectorAll(`#sets-${idx} .set-row`);
+  const inp = rows[si]?.querySelectorAll('.set-input')[field==='weight'?0:1];
   if (inp) inp.classList.toggle('filled', !!val);
   updateSummary(idx);
 }
 
-function toggleDone(idx, si) {
+function doneSet(idx, si) {
   workoutSets[idx][si].done = !workoutSets[idx][si].done;
   renderSets(idx);
+  if (workoutSets[idx][si].done) startRestTimer(restTotal);
 }
 
 function addSet(idx) {
-  const last = workoutSets[idx][workoutSets[idx].length - 1] || { weight: '', reps: '' };
-  workoutSets[idx].push({ weight: last.weight, reps: last.reps, done: false });
+  const last = workoutSets[idx].slice(-1)[0] || {weight:'',reps:''};
+  workoutSets[idx].push({weight: last.weight, reps: last.reps, done: false});
   renderSets(idx);
 }
 
 function updateSummary(idx) {
   const sets = workoutSets[idx];
   const done = sets.filter(s => s.done).length;
-  const total = sets.length;
-  const el = document.getElementById('ex-summary-' + idx);
-  if (el) el.textContent = done > 0 ? `${done}/${total} ✓` : `${total} подх`;
+  const el = document.getElementById('ex-sum-' + idx);
+  if (el) el.textContent = done > 0 ? `${done}/${sets.length} ✓` : `${sets.length} подх`;
 }
 
 function toggleEx(idx) {
@@ -750,153 +622,190 @@ function toggleEx(idx) {
   if (!isOpen) { body.classList.add('open'); chev.classList.add('open'); }
 }
 
-// TIMER
-function startTimer() {
-  timerSeconds = 0;
-  clearInterval(timerInterval);
+// MAIN TIMER
+function timerStart() {
+  timerRunning = true;
+  document.getElementById('timer-val').classList.remove('paused');
+  document.getElementById('btn-start').style.display = 'none';
+  document.getElementById('btn-pause').style.display = 'inline-block';
+  document.getElementById('btn-stop').style.display = 'inline-block';
   timerInterval = setInterval(() => {
     timerSeconds++;
-    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-    const s = String(timerSeconds % 60).padStart(2, '0');
+    const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
+    const s = String(timerSeconds%60).padStart(2,'0');
     const el = document.getElementById('timer-val');
-    if (el) el.textContent = m + ':' + s;
+    if (el) el.textContent = m+':'+s;
   }, 1000);
 }
-function stopTimer() { clearInterval(timerInterval); }
+function timerPause() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timer-val').classList.add('paused');
+  document.getElementById('btn-start').style.display = 'inline-block';
+  document.getElementById('btn-start').textContent = '▶ Продолжить';
+  document.getElementById('btn-pause').style.display = 'none';
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+}
+
+// REST TIMER
+function startRestTimer(sec) {
+  clearInterval(restInterval);
+  restTotal = sec;
+  restRemaining = sec;
+  document.getElementById('rest-bar').classList.add('active');
+  updateRestDisplay();
+  restInterval = setInterval(() => {
+    restRemaining--;
+    updateRestDisplay();
+    if (soundOn) {
+      if (restRemaining === 10) playBeep(440, 0.3);
+      if (restRemaining === 3) playBeep(523, 0.3);
+      if (restRemaining === 2) playBeep(523, 0.3);
+      if (restRemaining === 1) playBeep(523, 0.3);
+      if (restRemaining === 0) playBeep(659, 0.8);
+    }
+    if (restRemaining <= 0) skipRest();
+  }, 1000);
+}
+function updateRestDisplay() {
+  const el = document.getElementById('rest-time-display');
+  const fill = document.getElementById('rest-fill');
+  if (el) {
+    el.textContent = restRemaining;
+    el.classList.toggle('urgent', restRemaining <= 10);
+  }
+  if (fill) fill.style.width = ((restRemaining/restTotal)*100) + '%';
+}
+function skipRest() {
+  clearInterval(restInterval);
+  document.getElementById('rest-bar').classList.remove('active');
+}
+function setRestTime(sec, btn) {
+  document.querySelectorAll('.rest-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  restTotal = sec;
+  if (restRemaining > 0) startRestTimer(sec);
+}
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('sound-toggle').textContent = soundOn ? '🔊' : '🔇';
+}
+function playBeep(freq, dur) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
+}
 
 // FINISH
 function openFinishModal() {
+  if (timerRunning) timerPause();
   const done = Object.values(workoutSets).flat().filter(s => s.done).length;
   const total = Object.values(workoutSets).flat().length;
-  const m = Math.floor(timerSeconds / 60);
-  document.getElementById('finish-summary').textContent = `Время: ${m} мин · Подходов: ${done}/${total}`;
+  const m = Math.floor(timerSeconds/60);
+  document.getElementById('finish-summary').textContent = `${m} мин · ${done}/${total} подходов выполнено`;
   document.getElementById('finish-modal').classList.add('open');
 }
 function closeFinishModal() { document.getElementById('finish-modal').classList.remove('open'); }
 function selFeel(btn) {
   document.querySelectorAll('.feel-btn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  feelingVal = parseInt(btn.dataset.val);
+  btn.classList.add('sel'); feelingVal = parseInt(btn.dataset.val);
 }
 function selRating(btn) {
   document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  ratingVal = parseInt(btn.dataset.val);
+  btn.classList.add('sel'); ratingVal = parseInt(btn.dataset.val);
 }
 
 async function saveWorkout() {
   if (!currentUser) return;
-  stopTimer();
-
+  stopTimer(); skipRest();
   const bw = document.getElementById('finish-bodyweight').value;
   const notes = document.getElementById('finish-notes').value;
   const w = WORKOUTS[currentWorkout];
-
-  const { data: workout, error: wErr } = await sb.from('workouts').insert({
-    user_id: currentUser.id,
-    type: currentWorkout,
-    intensity: w.intensity,
-    duration_min: Math.floor(timerSeconds / 60),
+  const {data: workout, error} = await sb.from('workouts').insert({
+    user_id: currentUser.id, type: currentWorkout, intensity: w.intensity,
+    duration_min: Math.floor(timerSeconds/60),
     bodyweight: bw ? parseFloat(bw) : null,
-    feeling: feelingVal,
-    rating: ratingVal,
-    notes: notes || null,
-    date: new Date().toISOString().split('T')[0]
+    feeling: feelingVal, rating: ratingVal,
+    notes: notes || null, date: new Date().toISOString().split('T')[0]
   }).select().single();
-
-  if (wErr) { alert('Ошибка сохранения: ' + wErr.message); return; }
-
-  const setsToInsert = [];
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  const setsArr = [];
   w.exercises.forEach((ex, idx) => {
     workoutSets[idx].forEach((s, si) => {
-      if (s.weight || s.reps) {
-        setsToInsert.push({
-          workout_id: workout.id,
-          exercise_name: ex.name,
-          set_number: si + 1,
-          weight: s.weight ? parseFloat(s.weight) : null,
-          reps: s.reps ? parseInt(s.reps) : null
-        });
-      }
+      if (s.weight || s.reps) setsArr.push({
+        workout_id: workout.id, exercise_name: ex.name,
+        set_number: si+1, weight: s.weight ? parseFloat(s.weight) : null,
+        reps: s.reps ? parseInt(s.reps) : null
+      });
     });
   });
-
-  if (setsToInsert.length > 0) {
-    await sb.from('sets').insert(setsToInsert);
-  }
-
+  if (setsArr.length) await sb.from('sets').insert(setsArr);
   closeFinishModal();
   goHome();
   loadHomeStats();
   loadLastWorkout();
 }
 
-// HOME STATS
 async function loadHomeStats() {
-  const { data } = await sb.from('workouts').select('date').eq('user_id', currentUser.id);
+  const {data} = await sb.from('workouts').select('date, sets(weight, reps)').eq('user_id', currentUser.id);
   if (!data) return;
   document.getElementById('stat-total').textContent = data.length;
   const today = new Date();
-  const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - today.getDay());
-  const thisWeek = data.filter(w => new Date(w.date) >= weekStart).length;
-  document.getElementById('stat-week').textContent = thisWeek;
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
+  document.getElementById('stat-week').textContent = data.filter(w => new Date(w.date) >= weekStart).length;
+  const totalVol = data.flatMap(w => w.sets).reduce((a, s) => a + (s.weight||0)*(s.reps||0), 0);
+  document.getElementById('stat-vol').textContent = totalVol > 0 ? Math.round(totalVol/1000) + 'т' : '—';
 }
 
 async function loadLastWorkout() {
   const block = document.getElementById('last-workout-block');
-  const { data } = await sb.from('workouts').select('*, sets(*)').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
-
-  if (!data || data.length === 0) {
+  const {data} = await sb.from('workouts').select('*, sets(*)').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(1);
+  if (!data || !data.length) {
     block.innerHTML = '<div class="empty-state"><div class="empty-icon">🏋️</div><div class="empty-text">Тренировок пока нет. Начни первую!</div></div>';
     return;
   }
-
   const w = data[0];
-  const d = new Date(w.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  const d = new Date(w.date).toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
   const topSets = w.sets.filter(s => s.weight).slice(0, 4);
-
-  block.innerHTML = `
-    <div class="last-workout">
-      <div class="lw-title">Тренировка ${w.type} · ${d} · ${w.duration_min || '?'} мин</div>
-      ${topSets.map(s => `
-        <div class="lw-row">
-          <div class="lw-ex">${s.exercise_name}</div>
-          <div class="lw-weight">${s.weight} кг × ${s.reps}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  block.innerHTML = `<div class="last-workout">
+    <div class="lw-title">Тренировка ${w.type} · ${d} · ${w.duration_min||'?'} мин</div>
+    ${topSets.map(s => `<div class="lw-row"><div class="lw-ex">${s.exercise_name}</div><div class="lw-weight">${s.weight} кг × ${s.reps}</div></div>`).join('')}
+  </div>`;
 }
 
-// HISTORY
 async function loadHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '<div class="loader">Загрузка...</div>';
-  const { data } = await sb.from('workouts').select('*, sets(*)').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(30);
-
-  if (!data || data.length === 0) {
+  const {data} = await sb.from('workouts').select('*, sets(*)').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(30);
+  if (!data || !data.length) {
     list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">История пуста</div></div>';
     return;
   }
-
   list.innerHTML = data.map(w => {
-    const d = new Date(w.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
-    const topEx = [...new Set(w.sets.filter(s => s.weight).map(s => s.exercise_name))].slice(0, 3);
-    const totalVol = w.sets.reduce((acc, s) => acc + (s.weight || 0) * (s.reps || 0), 0);
-    return `
-      <div class="hist-card">
-        <div class="hist-header">
-          <div class="hist-type">Тренировка ${w.type} <span class="wcard-badge ${w.intensity === 'light' ? 'badge-light' : w.intensity === 'medium' ? 'badge-medium' : 'badge-heavy'}" style="font-size:10px">${w.intensity === 'light' ? 'Л' : w.intensity === 'medium' ? 'С' : 'Т'}</span></div>
-          <div class="hist-date">${d}</div>
-        </div>
-        <div class="hist-sets">${w.duration_min || '?'} мин · ${w.sets.length} подходов · ${Math.round(totalVol)} кг тоннаж</div>
-        <div class="hist-top">
-          ${topEx.map(e => `<div class="hist-pill">${e}</div>`).join('')}
-          ${w.rating ? `<div class="hist-pill">⭐ ${w.rating}/5</div>` : ''}
-        </div>
+    const d = new Date(w.date).toLocaleDateString('ru-RU', {day:'numeric', month:'long', weekday:'short'});
+    const topEx = [...new Set(w.sets.filter(s => s.weight).map(s => s.exercise_name))].slice(0,3);
+    const vol = w.sets.reduce((a,s) => a+(s.weight||0)*(s.reps||0), 0);
+    const badgeClass = w.intensity==='light'?'badge-light':w.intensity==='medium'?'badge-medium':w.intensity==='heavy'?'badge-heavy':'badge-recovery';
+    const badgeLetter = w.intensity==='light'?'Л':w.intensity==='medium'?'С':w.intensity==='heavy'?'Т':'В';
+    return `<div class="hist-card">
+      <div class="hist-header">
+        <div class="hist-type">Тренировка ${w.type} <span class="wcard-badge ${badgeClass}" style="font-size:10px">${badgeLetter}</span></div>
+        <div class="hist-date">${d}</div>
       </div>
-    `;
+      <div class="hist-sets">${w.duration_min||'?'} мин · ${w.sets.length} подходов · ${Math.round(vol)} кг тоннаж</div>
+      <div class="hist-top">${topEx.map(e=>`<div class="hist-pill">${e}</div>`).join('')}${w.rating?`<div class="hist-pill">⭐ ${w.rating}/5</div>`:''}</div>
+    </div>`;
   }).join('');
 }
 </script>
