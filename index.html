@@ -413,7 +413,7 @@ const WORKOUTS = {
     badge: '🟣 Восст.', badgeClass: 'badge-recovery', intensity: 'recovery',
     exercises: [
       {name:'Кардио (разминка)',muscle:'',sets:0,reps:'5 мин',hint:'пульс 150+',weight:0},
-      {name:'Жим штанги лёжа',muscle:'Грудь · Трицепс',sets:4,reps:'10',hint:'75 кг',weight:75},
+      {name:'Жим штанги в наклоне',muscle:'Грудь · Трицепс',sets:4,reps:'10',hint:'60 кг',weight:60,warmup:{weight:0,reps:40}},
       {name:'Жим гантелей в наклоне',muscle:'Грудь · Трицепс',sets:3,reps:'10',hint:'2×18 кг',weight:18},
       {name:'Бабочка (тренажёр)',muscle:'Грудь',sets:3,reps:'12',hint:'50 кг',weight:50},
       {name:'Разгибания ног',muscle:'Квадрицепс',sets:4,reps:'15',hint:'рабочий вес',weight:0},
@@ -532,6 +532,11 @@ function startWorkout(type) {
   w.exercises.forEach((ex, idx) => {
     workoutSets[idx] = [];
     if (ex.sets > 0) {
+      if (ex.warmup) {
+        workoutSets[idx].push({weight: ex.warmup.weight, reps: ex.warmup.reps, done: false, isWarmup: true});
+      } else {
+        workoutSets[idx].push({weight: '', reps: '', done: false, isWarmup: true});
+      }
       for (let i = 0; i < ex.sets; i++) {
         workoutSets[idx].push({weight: ex.weight || '', reps: '', done: false});
       }
@@ -575,7 +580,7 @@ function renderSets(idx) {
     const row = document.createElement('div');
     row.className = 'set-row';
     row.innerHTML = `
-      <div class="set-num">${si+1}</div>
+      <div class="set-num" style="${s.isWarmup?'color:var(--text2);font-size:11px':''}">${s.isWarmup?'Р':si}</div>
       <input class="set-input${s.weight?' filled':''}" type="number" inputmode="decimal" placeholder="кг" value="${s.weight}"
         oninput="updateSet(${idx},${si},'weight',this.value)">
       <input class="set-input${s.reps?' filled':''}" type="number" inputmode="numeric" placeholder="повт" value="${s.reps}"
