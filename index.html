@@ -677,8 +677,9 @@ sb.auth.onAuthStateChange(async(event,session)=>{
     // Wait for DB to be ready before syncing
     if(!db) await initDB();
     await loadTemplates();
+    buildHomeCards();
     await syncPending();
-    loadHomeStats();loadLastWorkout();buildHomeCards();
+    loadHomeStats();loadLastWorkout();
   }
 });
 
@@ -1301,6 +1302,7 @@ async function loadHistory(){
 // ── INIT ──────────────────────────────────────────────────────────────────
 initDB().then(async()=>{
   await loadTemplates();
+  buildHomeCards();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 });
 </script>
