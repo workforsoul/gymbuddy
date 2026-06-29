@@ -1169,6 +1169,22 @@ async function saveWorkout(){
   const kcal=document.getElementById('finish-kcal').value;
   const w=templates[currentWorkout];
   const tonnage=updateLiveTonnage();
+  const exs=sessionExercises||w.exercises;
+  // Collect exercise notes and sets
+  const exNotes={};
+  const setsArr=[];
+  exs.forEach((ex,idx)=>{
+    const noteEl=document.getElementById('ex-note-'+idx);
+    if(noteEl&&noteEl.value) exNotes[ex.name]=noteEl.value;
+    (workoutSets[idx]||[]).forEach((s,si)=>{
+      if(s.weight!==''||s.reps) setsArr.push({
+        exercise_name:ex.name,set_number:si+1,
+        weight:s.weight!==''?parseFloat(s.weight):null,
+        reps:s.reps?parseInt(s.reps):null,
+        is_warmup:s.isWarmup||false
+      });
+    });
+  });
   const exNotesStr=Object.keys(exNotes).length?JSON.stringify(exNotes):null;
   const workoutData={
     type:currentWorkout,intensity:w.intensity,
@@ -1183,21 +1199,6 @@ async function saveWorkout(){
     date:new Date().toISOString().split('T')[0],
     synced:false
   };
-  const exs=sessionExercises||w.exercises;
-  const setsArr=[];
-  const exNotes={};
-  exs.forEach((ex,idx)=>{
-    const noteEl=document.getElementById('ex-note-'+idx);
-    if(noteEl&&noteEl.value) exNotes[ex.name]=noteEl.value;
-    (workoutSets[idx]||[]).forEach((s,si)=>{
-      if(s.weight!==''||s.reps) setsArr.push({
-        exercise_name:ex.name,set_number:si+1,
-        weight:s.weight!==''?parseFloat(s.weight):null,
-        reps:s.reps?parseInt(s.reps):null,
-        is_warmup:s.isWarmup||false
-      });
-    });
-  });
   if(navigator.onLine){
     const {data:saved,error}=await sb.from('workouts').insert({...workoutData,user_id:currentUser.id,synced:undefined}).select().single();
     if(!error&&setsArr.length) await sb.from('sets').insert(setsArr.map(s=>({...s,workout_id:saved.id})));
@@ -1212,6 +1213,7 @@ async function saveWorkout(){
   closeFinishModal();navBack();
   loadHomeStats();loadLastWorkout();
 }
+
 async function saveLocally(workoutData,setsArr){
   const localId=await dbPut('workouts',workoutData);
   for(const s of setsArr) await dbPut('sets',{...s,local_workout_id:localId});
