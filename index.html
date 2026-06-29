@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0a">
 <title>GYM Buddy</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{--bg:#0a0a0a;--bg2:#141414;--bg3:#1e1e1e;--border:#2a2a2a;--text:#f0f0f0;--text2:#888;--text3:#444;--accent:#c8f53a;--red:#ff4444;--orange:#ff8c00;--green:#4caf50;--radius:12px;--radius-sm:8px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -481,7 +481,108 @@ input:focus,textarea:focus{border-color:var(--accent)}
 <script>
 const SUPABASE_URL='https://kysrgqkcpjeukdkbtvxp.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5c3JncWtjcGpldWtka2J0dnhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDIwNDcsImV4cCI6MjA5Nzg3ODA0N30.9f1Vgz5ak94pcJzAmxSHZN2aMtjsDsrUS-NPoTlmrTs';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+// Pure fetch Supabase client - no JS SDK
+const SB_HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Content-Type': 'application/json'
+};
+
+function authHeaders(token) {
+  return {...SB_HEADERS, 'Authorization': 'Bearer ' + (token || SUPABASE_KEY)};
+}
+
+// Auth token storage
+let _session = null;
+
+const sb = {
+  auth: {
+    _token: null,
+    async signInWithPassword({email, password}) {
+      const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: SB_HEADERS,
+        body: JSON.stringify({email, password})
+      });
+      const data = await r.json();
+      if(data.error) return {error: {message: data.error_description || data.error}};
+      _session = data;
+      sb.auth._token = data.access_token;
+      localStorage.setItem('gym_session', JSON.stringify(data));
+      if(sb.auth._onChange) sb.auth._onChange('SIGNED_IN', data);
+      return {data, error: null};
+    },
+    async signUp({email, password}) {
+      const r = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+        method: 'POST',
+        headers: SB_HEADERS,
+        body: JSON.stringify({email, password})
+      });
+      const data = await r.json();
+      if(data.error) return {error: {message: data.error_description || data.error}};
+      return {data, error: null};
+    },
+    async signOut() {
+      localStorage.removeItem('gym_session');
+      _session = null;
+      sb.auth._token = null;
+    },
+    async getSession() {
+      return {data: {session: _session}};
+    },
+    onAuthStateChange(fn) {
+      sb.auth._onChange = fn;
+      // Try to restore session from localStorage
+      const saved = localStorage.getItem('gym_session');
+      if(saved) {
+        try {
+          const s = JSON.parse(saved);
+          _session = s;
+          sb.auth._token = s.access_token;
+          setTimeout(() => fn('SIGNED_IN', s), 100);
+        } catch(e) {}
+      }
+    }
+  },
+  from(table) {
+    const token = sb.auth._token || SUPABASE_KEY;
+    const base = SUPABASE_URL + '/rest/v1/' + table;
+    let _query = '';
+    let _order = '';
+    let _limit = '';
+    let _select = '*';
+    
+    const builder = {
+      select(cols) { _select = cols || '*'; return builder; },
+      eq(col, val) { _query += (_query ? '&' : '?') + col + '=eq.' + encodeURIComponent(val); return builder; },
+      order(col, {ascending} = {}) { _order = '&order=' + col + (ascending ? '.asc' : '.desc'); return builder; },
+      limit(n) { _limit = '&limit=' + n; return builder; },
+      single() { builder._single = true; return builder; },
+      async insert(data) {
+        const r = await fetch(base + '?select=' + encodeURIComponent(_select), {
+          method: 'POST',
+          headers: {...authHeaders(token), 'Prefer': 'return=representation'},
+          body: JSON.stringify(data)
+        });
+        const json = await r.json();
+        if(!r.ok) return {data: null, error: json};
+        const result = Array.isArray(json) ? json : [json];
+        return {data: builder._single ? result[0] : result, error: null};
+      },
+      async then(resolve, reject) {
+        try {
+          const url = base + '?select=' + encodeURIComponent(_select) + _query + _order + _limit;
+          const r = await fetch(url, {headers: authHeaders(token)});
+          const json = await r.json();
+          if(!r.ok) { resolve({data: null, error: json}); return; }
+          resolve({data: builder._single ? (json[0]||null) : json, error: null});
+        } catch(e) {
+          reject(e);
+        }
+      }
+    };
+    return builder;
+  }
+};
 
 // ── EXERCISE DATABASE ─────────────────────────────────────────────────────
 const ALL_EXERCISES=[
@@ -623,8 +724,9 @@ async function syncPending(){
   if(!unsynced.length) return;
   for(const w of unsynced){
     const {local_id,synced,...wData}=w;
-    const {data:saved,error}=await sb.from('workouts').insert({...wData,user_id:currentUser.id}).select().single();
-    if(error) continue;
+    const syncRes=await sb.from('workouts').insert({...wData,user_id:currentUser.id}).select('*').single();
+    if(syncRes.error) continue;
+    const saved=syncRes.data;
     const allSets=await dbGetAll('sets');
     const wSets=allSets.filter(s=>s.local_workout_id===local_id);
     if(wSets.length){
@@ -668,8 +770,8 @@ async function signOut(){await sb.auth.signOut();location.reload();}
 function showAuthError(msg){const el=document.getElementById('auth-error');el.textContent=msg;el.style.display=msg?'block':'none';}
 function showRegError(msg){const el=document.getElementById('reg-error');el.textContent=msg;el.style.display=msg?'block':'none';}
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(session?.user){
-    currentUser=session.user;
+  if(session?.user || session?.access_token){
+    currentUser=session?.user || {id: session?.user_id || JSON.parse(atob(session.access_token.split('.')[1])).sub, email: session?.email || ''};
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('app').classList.add('visible');
     document.getElementById('greeting').textContent='Привет, '+session.user.email.split('@')[0]+'!';
@@ -1201,9 +1303,11 @@ async function saveWorkout(){
     synced:false
   };
   if(navigator.onLine){
-    const {data:saved,error}=await sb.from('workouts').insert({...workoutData,user_id:currentUser.id,synced:undefined}).select().single();
-    if(!error&&setsArr.length) await sb.from('sets').insert(setsArr.map(s=>({...s,workout_id:saved.id})));
-    if(error) await saveLocally(workoutData,setsArr);
+    const saveRes=await sb.from('workouts').insert({...workoutData,user_id:currentUser.id,synced:undefined}).select('*').single();
+    if(saveRes.error){console.error('Save error:',saveRes.error);await saveLocally(workoutData,setsArr);}
+    else{
+      if(setsArr.length) await sb.from('sets').insert(setsArr.map(s=>({...s,workout_id:saveRes.data.id})));
+    }
   } else {
     await saveLocally(workoutData,setsArr);
   }
@@ -1244,8 +1348,12 @@ async function loadLastWorkout(){
   const block=document.getElementById('last-workout-block');
   let workout=null;
   if(navigator.onLine){
-    const {data}=await sb.from('workouts').select('*,sets(*)').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1);
-    if(data&&data.length) workout=data[0];
+    const {data}=await sb.from('workouts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1);
+    if(data&&data.length){
+      workout=data[0];
+      const setsRes=await fetch(SUPABASE_URL+'/rest/v1/sets?workout_id=eq.'+workout.id+'&select=*',{headers:authHeaders(sb.auth._token)});
+      workout.sets=await setsRes.json();
+    }
   }
   if(!workout){
     const local=await dbGetAll('workouts');
@@ -1271,8 +1379,14 @@ async function loadHistory(){
   list.innerHTML='<div class="loader">Загрузка...</div>';
   let items=[];
   if(navigator.onLine){
-    const {data}=await sb.from('workouts').select('*,sets(*)').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
-    if(data) items=data;
+    const {data}=await sb.from('workouts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
+    if(data){
+      for(const w of data){
+        const setsRes=await fetch(SUPABASE_URL+'/rest/v1/sets?workout_id=eq.'+w.id+'&select=*',{headers:authHeaders(sb.auth._token)});
+        w.sets=await setsRes.json();
+      }
+      items=data;
+    }
   }
   const local=await dbGetAll('workouts');
   const unsynced=local.filter(w=>!w.synced);
@@ -1303,7 +1417,7 @@ async function loadHistory(){
 initDB().then(async()=>{
   await loadTemplates();
   buildHomeCards();
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  // Service worker disabled - caused request interception issues
 });
 </script>
 </body>
