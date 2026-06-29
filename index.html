@@ -1166,6 +1166,7 @@ async function saveWorkout(){
   const kcal=document.getElementById('finish-kcal').value;
   const w=templates[currentWorkout];
   const tonnage=updateLiveTonnage();
+  const exNotesStr=Object.keys(exNotes).length?JSON.stringify(exNotes):null;
   const workoutData={
     type:currentWorkout,intensity:w.intensity,
     duration_min:Math.floor(getTotalSeconds()/60),
@@ -1194,7 +1195,6 @@ async function saveWorkout(){
       });
     });
   });
-  const exNotesStr=Object.keys(exNotes).length?JSON.stringify(exNotes):null;
   if(navigator.onLine){
     const {data:saved,error}=await sb.from('workouts').insert({...workoutData,user_id:currentUser.id,synced:undefined}).select().single();
     if(!error&&setsArr.length) await sb.from('sets').insert(setsArr.map(s=>({...s,workout_id:saved.id})));
