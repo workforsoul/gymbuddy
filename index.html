@@ -744,9 +744,19 @@ async function signUp(){
   const pass2=document.getElementById('reg-password2').value;
   if(!email||!pass){showRegError('Введи email и пароль');return;}
   if(pass!==pass2){showRegError('Пароли не совпадают');return;}
-  const {error}=await authSignUp(email,pass);
-  if(error) showRegError(error.message);
-  else{showRegError('Проверь почту для подтверждения!');setTimeout(closeRegModal,2000);}
+  const {data,error}=await authSignUp(email,pass);
+  if(error){ showRegError(error.message); return; }
+  if(data && data.access_token){
+    // Email confirmation off — session issued immediately, log straight in.
+    // Profile row is created by the DB trigger (handle_new_user), client does nothing.
+    _setSession(data);
+    closeRegModal();
+    await enterApp(data);
+  } else {
+    // Email confirmation on — user must verify before logging in.
+    showRegError('Проверь почту для подтверждения!');
+    setTimeout(closeRegModal,2000);
+  }
 }
 function signOut(){ authSignOut(); location.reload(); }
 function showAuthError(msg){const el=document.getElementById('auth-error');el.textContent=msg;el.style.display=msg?'block':'none';}
