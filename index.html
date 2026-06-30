@@ -481,108 +481,89 @@ input:focus,textarea:focus{border-color:var(--accent)}
 <script>
 const SUPABASE_URL='https://kysrgqkcpjeukdkbtvxp.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5c3JncWtjcGpldWtka2J0dnhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDIwNDcsImV4cCI6MjA5Nzg3ODA0N30.9f1Vgz5ak94pcJzAmxSHZN2aMtjsDsrUS-NPoTlmrTs';
-// Pure fetch Supabase client - no JS SDK
-const SB_HEADERS = {
-  'apikey': SUPABASE_KEY,
-  'Content-Type': 'application/json'
-};
-
-function authHeaders(token) {
-  return {...SB_HEADERS, 'Authorization': 'Bearer ' + (token || SUPABASE_KEY)};
+// Kill any previously-installed Service Worker + its caches (caused stale index.html).
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+}
+if(self.caches && caches.keys){
+  caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
 }
 
-// Auth token storage
-let _session = null;
+// ── Supabase: flat fetch layer (no SDK, no query-builder, no thenable) ──────
+const SB_HEADERS = { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' };
 
-const sb = {
-  auth: {
-    _token: null,
-    async signInWithPassword({email, password}) {
-      const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-        method: 'POST',
-        headers: SB_HEADERS,
-        body: JSON.stringify({email, password})
-      });
-      const data = await r.json();
-      if(data.error) return {error: {message: data.error_description || data.error}};
-      _session = data;
-      sb.auth._token = data.access_token;
-      localStorage.setItem('gym_session', JSON.stringify(data));
-      if(sb.auth._onChange) sb.auth._onChange('SIGNED_IN', data);
-      return {data, error: null};
-    },
-    async signUp({email, password}) {
-      const r = await fetch(SUPABASE_URL + '/auth/v1/signup', {
-        method: 'POST',
-        headers: SB_HEADERS,
-        body: JSON.stringify({email, password})
-      });
-      const data = await r.json();
-      if(data.error) return {error: {message: data.error_description || data.error}};
-      return {data, error: null};
-    },
-    async signOut() {
-      localStorage.removeItem('gym_session');
-      _session = null;
-      sb.auth._token = null;
-    },
-    async getSession() {
-      return {data: {session: _session}};
-    },
-    onAuthStateChange(fn) {
-      sb.auth._onChange = fn;
-      // Try to restore session from localStorage
-      const saved = localStorage.getItem('gym_session');
-      if(saved) {
-        try {
-          const s = JSON.parse(saved);
-          _session = s;
-          sb.auth._token = s.access_token;
-          setTimeout(() => fn('SIGNED_IN', s), 100);
-        } catch(e) {}
-      }
-    }
-  },
-  from(table) {
-    const token = sb.auth._token || SUPABASE_KEY;
-    const base = SUPABASE_URL + '/rest/v1/' + table;
-    let _query = '';
-    let _order = '';
-    let _limit = '';
-    let _select = '*';
-    
-    const builder = {
-      select(cols) { _select = cols || '*'; return builder; },
-      eq(col, val) { _query += (_query ? '&' : '?') + col + '=eq.' + encodeURIComponent(val); return builder; },
-      order(col, {ascending} = {}) { _order = '&order=' + col + (ascending ? '.asc' : '.desc'); return builder; },
-      limit(n) { _limit = '&limit=' + n; return builder; },
-      single() { builder._single = true; return builder; },
-      async insert(data) {
-        const r = await fetch(base + '?select=' + encodeURIComponent(_select), {
-          method: 'POST',
-          headers: {...authHeaders(token), 'Prefer': 'return=representation'},
-          body: JSON.stringify(data)
-        });
-        const json = await r.json();
-        if(!r.ok) return {data: null, error: json};
-        const result = Array.isArray(json) ? json : [json];
-        return {data: builder._single ? result[0] : result, error: null};
-      },
-      async then(resolve, reject) {
-        try {
-          const url = base + '?select=' + encodeURIComponent(_select) + _query + _order + _limit;
-          const r = await fetch(url, {headers: authHeaders(token)});
-          const json = await r.json();
-          if(!r.ok) { resolve({data: null, error: json}); return; }
-          resolve({data: builder._single ? (json[0]||null) : json, error: null});
-        } catch(e) {
-          reject(e);
-        }
-      }
-    };
-    return builder;
-  }
-};
+let _session = null;
+let _authToken = null;
+function authToken(){ return _authToken || SUPABASE_KEY; }
+
+function _setSession(data){
+  _session = data;
+  _authToken = data.access_token;
+  localStorage.setItem('gym_session', JSON.stringify(data));
+}
+function authRestore(){
+  const saved = localStorage.getItem('gym_session');
+  if(!saved) return null;
+  try { const s = JSON.parse(saved); _session = s; _authToken = s.access_token; return s; }
+  catch(e){ return null; }
+}
+function authSignOut(){ localStorage.removeItem('gym_session'); _session = null; _authToken = null; }
+
+async function authSignIn(email, password){
+  const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+    method:'POST', headers:SB_HEADERS, body:JSON.stringify({email, password})
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok || data.error) return {data:null, error:{message: data.error_description || data.msg || data.error || ('HTTP '+res.status)}};
+  _setSession(data);
+  return {data, error:null};
+}
+async function authSignUp(email, password){
+  const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+    method:'POST', headers:SB_HEADERS, body:JSON.stringify({email, password})
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok || data.error) return {data:null, error:{message: data.error_description || data.msg || data.error || ('HTTP '+res.status)}};
+  return {data, error:null};
+}
+
+// Low-level REST helper. Always resolves to {data, error}; never throws on HTTP errors.
+async function sbRest(path, {method='GET', body=null, returnRep=false}={}){
+  const headers = {...SB_HEADERS, 'Authorization':'Bearer ' + authToken()};
+  if(returnRep) headers['Prefer'] = 'return=representation';
+  let res;
+  try {
+    res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+      method, headers, body: body != null ? JSON.stringify(body) : undefined
+    });
+  } catch(e){ return {data:null, error:{message:'network: ' + e.message}}; }
+  const text = await res.text();
+  let json = null;
+  if(text){ try { json = JSON.parse(text); } catch(e){ json = text; } }
+  if(!res.ok) return {data:null, error: json || {message:'HTTP ' + res.status}};
+  return {data: json, error:null};
+}
+
+// Explicit data functions — one job each, no chaining, no thenable.
+async function insertWorkout(workout){
+  const r = await sbRest('workouts?select=*', {method:'POST', body:workout, returnRep:true});
+  if(r.error) return r;
+  const row = Array.isArray(r.data) ? r.data[0] : r.data;
+  return {data: row, error:null};
+}
+async function insertSets(rows){
+  if(!rows || !rows.length) return {data:[], error:null};
+  return sbRest('sets', {method:'POST', body:rows});
+}
+async function getWorkouts(userId, {columns='*', order='created_at', limit=null}={}){
+  let path = 'workouts?select=' + encodeURIComponent(columns) + '&user_id=eq.' + encodeURIComponent(userId);
+  if(order) path += '&order=' + order + '.desc';
+  if(limit) path += '&limit=' + limit;
+  return sbRest(path);
+}
+async function getSets(workoutId){
+  return sbRest('sets?select=*&workout_id=eq.' + encodeURIComponent(workoutId));
+}
 
 // ── EXERCISE DATABASE ─────────────────────────────────────────────────────
 const ALL_EXERCISES=[
@@ -724,13 +705,13 @@ async function syncPending(){
   if(!unsynced.length) return;
   for(const w of unsynced){
     const {local_id,synced,...wData}=w;
-    const syncRes=await sb.from('workouts').insert({...wData,user_id:currentUser.id}).select('*').single();
+    const syncRes=await insertWorkout({...wData,user_id:currentUser.id});
     if(syncRes.error) continue;
     const saved=syncRes.data;
     const allSets=await dbGetAll('sets');
     const wSets=allSets.filter(s=>s.local_workout_id===local_id);
     if(wSets.length){
-      await sb.from('sets').insert(wSets.map(({local_id:lid,local_workout_id,...s})=>({...s,workout_id:saved.id})));
+      await insertSets(wSets.map(({local_id:lid,local_workout_id,...s})=>({...s,workout_id:saved.id})));
       for(const s of wSets) await dbDelete('sets',s.local_id);
     }
     await dbPut('workouts',{...w,synced:true,server_id:saved.id});
@@ -752,9 +733,10 @@ async function signIn(){
   const email=document.getElementById('auth-email').value,pass=document.getElementById('auth-password').value;
   if(!email||!pass){showAuthError('Введи email и пароль');return;}
   showAuthError('');
-  const {error}=await sb.auth.signInWithPassword({email,password:pass});
-  if(error) showAuthError(error.message);
-  else closeLoginModal();
+  const {data,error}=await authSignIn(email,pass);
+  if(error){ showAuthError(error.message); return; }
+  closeLoginModal();
+  await enterApp(data);
 }
 async function signUp(){
   const email=document.getElementById('reg-email').value;
@@ -762,28 +744,32 @@ async function signUp(){
   const pass2=document.getElementById('reg-password2').value;
   if(!email||!pass){showRegError('Введи email и пароль');return;}
   if(pass!==pass2){showRegError('Пароли не совпадают');return;}
-  const {error}=await sb.auth.signUp({email,password:pass});
+  const {error}=await authSignUp(email,pass);
   if(error) showRegError(error.message);
   else{showRegError('Проверь почту для подтверждения!');setTimeout(closeRegModal,2000);}
 }
-async function signOut(){await sb.auth.signOut();location.reload();}
+function signOut(){ authSignOut(); location.reload(); }
 function showAuthError(msg){const el=document.getElementById('auth-error');el.textContent=msg;el.style.display=msg?'block':'none';}
 function showRegError(msg){const el=document.getElementById('reg-error');el.textContent=msg;el.style.display=msg?'block':'none';}
-sb.auth.onAuthStateChange(async(event,session)=>{
-  if(session?.user || session?.access_token){
-    currentUser=session?.user || {id: session?.user_id || JSON.parse(atob(session.access_token.split('.')[1])).sub, email: session?.email || ''};
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('app').classList.add('visible');
-    document.getElementById('greeting').textContent='Привет, '+session.user.email.split('@')[0]+'!';
-    if(!navigator.onLine) document.getElementById('offline-badge').classList.add('show');
-    // Wait for DB to be ready before syncing
-    if(!db) await initDB();
-    await loadTemplates();
-    buildHomeCards();
-    await syncPending();
-    loadHomeStats();loadLastWorkout();
-  }
-});
+async function enterApp(session){
+  currentUser = (session && session.user) ? session.user
+    : {id: (session && session.user_id) || JSON.parse(atob(session.access_token.split('.')[1])).sub,
+       email: (session && session.email) || ''};
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  const name = (currentUser.email||'').split('@')[0] || 'друг';
+  document.getElementById('greeting').textContent='Привет, '+name+'!';
+  if(!navigator.onLine) document.getElementById('offline-badge').classList.add('show');
+  if(!db) await initDB();
+  await loadTemplates();
+  buildHomeCards();
+  await syncPending();
+  loadHomeStats();loadLastWorkout();
+}
+(async function bootAuth(){
+  const session = authRestore();
+  if(session && session.access_token) await enterApp(session);
+})();
 
 // ── NAV ───────────────────────────────────────────────────────────────────
 function switchNav(screen,el){
@@ -1303,10 +1289,10 @@ async function saveWorkout(){
     synced:false
   };
   if(navigator.onLine){
-    const saveRes=await sb.from('workouts').insert({...workoutData,user_id:currentUser.id,synced:undefined}).select('*').single();
+    const saveRes=await insertWorkout({...workoutData,user_id:currentUser.id,synced:undefined});
     if(saveRes.error){console.error('Save error:',saveRes.error);await saveLocally(workoutData,setsArr);}
     else{
-      if(setsArr.length) await sb.from('sets').insert(setsArr.map(s=>({...s,workout_id:saveRes.data.id})));
+      if(setsArr.length) await insertSets(setsArr.map(s=>({...s,workout_id:saveRes.data.id})));
     }
   } else {
     await saveLocally(workoutData,setsArr);
@@ -1329,7 +1315,7 @@ async function saveLocally(workoutData,setsArr){
 async function loadHomeStats(){
   let total=0,thisWeek=0,totalVol=0;
   if(navigator.onLine){
-    const {data}=await sb.from('workouts').select('date,tonnage').eq('user_id',currentUser.id);
+    const {data}=await getWorkouts(currentUser.id,{columns:'date,tonnage',order:null});
     if(data){
       total=data.length;
       const ws=new Date();ws.setDate(ws.getDate()-ws.getDay());
@@ -1348,11 +1334,11 @@ async function loadLastWorkout(){
   const block=document.getElementById('last-workout-block');
   let workout=null;
   if(navigator.onLine){
-    const {data}=await sb.from('workouts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1);
+    const {data}=await getWorkouts(currentUser.id,{limit:1});
     if(data&&data.length){
       workout=data[0];
-      const setsRes=await fetch(SUPABASE_URL+'/rest/v1/sets?workout_id=eq.'+workout.id+'&select=*',{headers:authHeaders(sb.auth._token)});
-      workout.sets=await setsRes.json();
+      const setsRes=await getSets(workout.id);
+      workout.sets=setsRes.data||[];
     }
   }
   if(!workout){
@@ -1379,11 +1365,11 @@ async function loadHistory(){
   list.innerHTML='<div class="loader">Загрузка...</div>';
   let items=[];
   if(navigator.onLine){
-    const {data}=await sb.from('workouts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
+    const {data}=await getWorkouts(currentUser.id,{limit:30});
     if(data){
       for(const w of data){
-        const setsRes=await fetch(SUPABASE_URL+'/rest/v1/sets?workout_id=eq.'+w.id+'&select=*',{headers:authHeaders(sb.auth._token)});
-        w.sets=await setsRes.json();
+        const setsRes=await getSets(w.id);
+        w.sets=setsRes.data||[];
       }
       items=data;
     }
