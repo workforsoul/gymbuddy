@@ -195,6 +195,23 @@ input:focus,textarea:focus{border-color:var(--accent)}
 
 /* HISTORY */
 .history-list{padding:8px 16px 100px;display:flex;flex-direction:column;gap:8px}
+.hist-card{cursor:pointer}.hist-card:active{border-color:var(--accent)}
+.histdetail-body{padding:16px 16px 120px;overflow-y:auto}
+.hd-type{font-size:18px;font-weight:700;color:var(--text)}
+.hd-date{font-size:13px;color:var(--text3);margin-top:2px;text-transform:capitalize}
+.hd-metrics{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.hd-metrics span{font-size:12px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
+.hd-ex{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px}
+.hd-ex-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px}
+.hd-set{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);padding:3px 0}
+.hd-set-n{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#000;border-radius:6px;font-size:11px;font-weight:700}
+.hd-set .wu{font-size:10px;color:var(--text3);border:1px solid var(--text3);border-radius:4px;padding:0 4px;margin-left:4px}
+.hd-empty{color:var(--text3);font-size:13px;padding:12px 0}
+.hd-notes{margin-top:12px;font-size:13px;color:var(--text2);line-height:1.5;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.hd-notes-l{font-size:11px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;letter-spacing:1px}
+.hd-photo{margin-top:12px}.hd-photo img{width:100%;border-radius:var(--radius)}
+.hd-del{width:100%;margin-top:24px;background:transparent;border:1px solid var(--red);color:var(--red)}
+.hd-del:active{background:var(--red);color:#fff}
 .hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
 .hist-header{display:flex;justify-content:space-between;margin-bottom:8px}
 .hist-type{font-size:16px;font-weight:600}
@@ -382,6 +399,11 @@ input:focus,textarea:focus{border-color:var(--accent)}
     <div class="history-list" id="history-list"><div class="loader">Загрузка...</div></div>
   </div>
 
+  <!-- HISTORY DETAIL -->
+  <div class="screen" id="screen-histdetail">
+    <div class="histdetail-body" id="histdetail-body"></div>
+  </div>
+
   <div class="nav-bar" id="main-nav">
     <div class="nav-item active" onclick="switchNav('home',this)"><div class="nav-icon">🏠</div><div class="nav-label">Главная</div></div>
     <div class="nav-item" onclick="switchNav('history',this)"><div class="nav-icon">📋</div><div class="nav-label">История</div></div>
@@ -564,6 +586,10 @@ async function getWorkouts(userId, {columns='*', order='created_at', limit=null}
 async function getSets(workoutId){
   return sbRest('sets?select=*&workout_id=eq.' + encodeURIComponent(workoutId));
 }
+async function deleteWorkout(id){
+  // sets cascade-delete via FK (workouts ... on delete cascade)
+  return sbRest('workouts?id=eq.' + encodeURIComponent(id), {method:'DELETE'});
+}
 
 // ── EXERCISE DATABASE ─────────────────────────────────────────────────────
 const ALL_EXERCISES=[
@@ -576,6 +602,7 @@ const ALL_EXERCISES=[
   {name:'Разведение ног',muscle:'Приводящие'},{name:'Сведение ног',muscle:'Отводящие'},
   {name:'Икры в тренажёре',muscle:'Икры'},
   {name:'Подтягивания',muscle:'Спина · Бицепс'},{name:'Тяга горизонтального блока',muscle:'Спина · Бицепс'},
+  {name:'Подтягивания в гравитроне',muscle:'Спина · Бицепс'},{name:'Отжимания на брусьях в гравитроне',muscle:'Грудь · Трицепс'},
   {name:'Тяга вертикального блока широким хватом',muscle:'Спина · Бицепс'},{name:'Тяга гантели одной рукой',muscle:'Спина · Бицепс'},
   {name:'Гиперэкстензия',muscle:'Поясница · Ягодицы'},{name:'Шраги с гантелями',muscle:'Трапеции'},
   {name:'Жим Смита сидя (плечи)',muscle:'Плечи · Трицепс'},{name:'Тяга штанги к подбородку',muscle:'Плечи · Трапеции'},
@@ -669,6 +696,7 @@ let addExTarget='editor';
 let sessionExercises=null;
 let photoBase64=null;
 let db=null;
+let historyCache=[], currentHistWorkout=null;
 
 // ── INDEXEDDB ─────────────────────────────────────────────────────────────
 function initDB(){
@@ -795,6 +823,7 @@ function switchNav(screen,el){
   if(screen==='editor') renderEditor();
 }
 function navBack(){
+  if(document.getElementById('screen-histdetail').classList.contains('active')){ backToHistory(); return; }
   stopTimer();skipRest();currentWorkout=null;workoutSets={};sessionExercises=null;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-home').classList.add('active');
@@ -1392,11 +1421,12 @@ async function loadHistory(){
   if(!items.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">История пуста</div></div>';return;}
   const bm={light:'badge-light',medium:'badge-medium',heavy:'badge-heavy',recovery:'badge-recovery',core:'badge-core'};
   const lm={light:'Л',medium:'С',heavy:'Т',recovery:'В',core:'К'};
-  list.innerHTML=items.map(w=>{
+  historyCache=items;
+  list.innerHTML=items.map((w,i)=>{
     const d=new Date(w.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',weekday:'short'});
     const topEx=[...new Set((w.sets||[]).filter(s=>s.weight).map(s=>s.exercise_name))].slice(0,3);
     const bc=bm[w.intensity]||'badge-light';
-    return `<div class="hist-card">
+    return `<div class="hist-card" onclick="openHistWorkout(${i})">
       <div class="hist-header">
         <div class="hist-type">Тренировка ${w.type} <span class="wcard-badge ${bc}" style="font-size:10px">${lm[w.intensity]||'?'}</span>${w._offline?'<span class="offline-indicator"> 📴</span>':''}</div>
         <div class="hist-date">${d}</div>
@@ -1407,6 +1437,75 @@ async function loadHistory(){
       ${w.photo?`<div class="hist-photo"><img src="${w.photo}" alt="фото тренировки"></div>`:''}
     </div>`;
   }).join('');
+}
+
+function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtSetLine(s){
+  const wt=(s.weight!=null&&s.weight!=='')?s.weight+' кг':'—';
+  const rp=(s.reps!=null&&s.reps!=='')?s.reps:'—';
+  return `${wt} × ${rp}${s.is_warmup?'<span class="wu">разм</span>':''}${s.notes?' · '+esc(s.notes):''}`;
+}
+function openHistWorkout(i){
+  const w=historyCache[i];
+  if(!w) return;
+  currentHistWorkout=w;
+  const lm={light:'Лёгкая',medium:'Средняя',heavy:'Тяжёлая',recovery:'Восстановление',core:'Кор'};
+  const d=new Date(w.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',weekday:'long'});
+  const groups=[],idx={};
+  (w.sets||[]).forEach(s=>{
+    const k=s.exercise_name||'—';
+    if(!(k in idx)){idx[k]=groups.length;groups.push({name:k,sets:[]});}
+    groups[idx[k]].sets.push(s);
+  });
+  const m=[];
+  if(w.duration_min) m.push(`⏱ ${w.duration_min} мин`);
+  if(w.tonnage) m.push(`🏋️ ${w.tonnage} кг`);
+  if(w.bodyweight) m.push(`⚖️ ${w.bodyweight} кг`);
+  if(w.feeling) m.push(`😊 ${w.feeling}/4`);
+  if(w.rating) m.push(`⭐ ${w.rating}/5`);
+  if(w.hr_avg) m.push(`❤️ ${w.hr_avg}`);
+  if(w.kcal) m.push(`🔥 ${w.kcal}`);
+  document.getElementById('histdetail-body').innerHTML=`
+    <div class="hd-type">Тренировка ${w.type||'?'} · ${lm[w.intensity]||'—'}${w._offline?' 📴':''}</div>
+    <div class="hd-date">${d}</div>
+    <div class="hd-metrics">${m.map(x=>`<span>${x}</span>`).join('')}</div>
+    ${groups.length?groups.map(g=>`
+      <div class="hd-ex">
+        <div class="hd-ex-name">${esc(g.name)}</div>
+        ${g.sets.map((s,n)=>`<div class="hd-set"><span class="hd-set-n">${n+1}</span><span>${fmtSetLine(s)}</span></div>`).join('')}
+      </div>`).join(''):'<div class="hd-empty">Подходы не записаны</div>'}
+    ${w.notes?`<div class="hd-notes"><div class="hd-notes-l">Заметки</div>${esc(w.notes).replace(/\n/g,'<br>')}</div>`:''}
+    ${w.photo?`<div class="hd-photo"><img src="${w.photo}" alt="фото"></div>`:''}
+    <button class="btn hd-del" onclick="deleteHistWorkout()">Удалить тренировку</button>`;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-histdetail').classList.add('active');
+  document.getElementById('topbar-title').textContent='Тренировка '+(w.type||'');
+  document.getElementById('topbar-sub').textContent='';
+  document.getElementById('back-btn').style.display='block';
+  document.getElementById('main-nav').style.display='none';
+}
+function backToHistory(){
+  document.getElementById('back-btn').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-history').classList.add('active');
+  document.getElementById('topbar-title').textContent='История';
+  document.getElementById('main-nav').style.display='flex';
+  loadHistory();
+}
+async function deleteHistWorkout(){
+  const w=currentHistWorkout;
+  if(!w) return;
+  if(!confirm('Удалить эту тренировку? Действие необратимо.')) return;
+  if(w._offline){
+    const allSets=await dbGetAll('sets');
+    for(const s of allSets.filter(x=>x.local_workout_id===w.local_id)) await dbDelete('sets',s.local_id);
+    await dbDelete('workouts',w.local_id);
+  } else {
+    const {error}=await deleteWorkout(w.id);
+    if(error){ alert('Не удалось удалить: '+error.message); return; }
+  }
+  backToHistory();
+  loadHomeStats();loadLastWorkout();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
