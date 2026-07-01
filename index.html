@@ -212,6 +212,19 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .hd-photo{margin-top:12px}.hd-photo img{width:100%;border-radius:var(--radius)}
 .hd-del{width:100%;margin-top:24px;background:transparent;border:1px solid var(--red);color:var(--red)}
 .hd-del:active{background:var(--red);color:#fff}
+.profile-body{padding:8px 16px 120px}
+.profile-body .field{margin-bottom:16px}
+.field-hint{font-size:11px;color:var(--text3);margin-top:6px}
+.sex-toggle{display:flex;gap:8px}
+.sex-opt{flex:1;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:14px;cursor:pointer}
+.sex-opt.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.bmi-card{margin-top:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.bmi-val{font-size:36px;font-weight:800;color:var(--accent);line-height:1}
+.bmi-cat{font-size:13px;color:var(--text2);margin-top:6px;text-transform:capitalize}
+.bmi-empty{font-size:13px;color:var(--text3)}
+.prof-saved{text-align:center;font-size:13px;padding:10px;min-height:20px}
+.prof-saved.ok{color:var(--green)}
+.prof-saved.err{color:var(--red)}
 .hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
 .hist-header{display:flex;justify-content:space-between;margin-bottom:8px}
 .hist-type{font-size:16px;font-weight:600}
@@ -276,10 +289,43 @@ input:focus,textarea:focus{border-color:var(--accent)}
       <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="your@email.com" autocomplete="email"></div>
       <div class="field"><label>Пароль</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"></div>
       <div id="auth-error" class="error-msg" style="display:none"></div>
+      <div style="text-align:right;margin-top:6px"><a href="#" onclick="openRecoverModal();return false" style="font-size:13px;color:var(--text2);text-decoration:none">Забыли пароль?</a></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" onclick="closeLoginModal()">Отмена</button>
       <button class="btn btn-primary" onclick="signIn()">Войти</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECOVER MODAL -->
+<div class="modal-overlay" id="recover-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">Восстановление пароля</div>
+    <div class="modal-sub" style="margin-bottom:12px">Пришлём ссылку для сброса на почту</div>
+    <div class="modal-fields" style="margin-bottom:16px">
+      <div class="field"><label>Email</label><input type="email" id="recover-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div id="recover-msg" class="error-msg" style="display:none"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeRecoverModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="sendRecover()">Отправить</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">Новый пароль</div>
+    <div class="modal-sub" style="margin-bottom:12px">Придумай новый пароль для входа</div>
+    <div class="modal-fields" style="margin-bottom:16px">
+      <div class="field"><label>Новый пароль</label><input type="password" id="reset-pass" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="field"><label>Повтори пароль</label><input type="password" id="reset-pass2" placeholder="••••••••" autocomplete="new-password"></div>
+      <div id="reset-msg" class="error-msg" style="display:none"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" style="width:100%" onclick="submitNewPassword()">Сохранить пароль</button>
     </div>
   </div>
 </div>
@@ -404,10 +450,35 @@ input:focus,textarea:focus{border-color:var(--accent)}
     <div class="histdetail-body" id="histdetail-body"></div>
   </div>
 
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="section-label" style="padding-top:20px">Профиль</div>
+    <div class="profile-body">
+      <div class="field">
+        <label>Пол</label>
+        <div class="sex-toggle">
+          <button type="button" class="sex-opt" data-sex="m" onclick="setSex('m')">Мужской</button>
+          <button type="button" class="sex-opt" data-sex="f" onclick="setSex('f')">Женский</button>
+        </div>
+      </div>
+      <div class="field"><label>Рост (см)</label><input type="number" id="prof-height" placeholder="180" step="1" oninput="renderBMI()"></div>
+      <div class="field"><label>Вес (кг)</label><input type="number" id="prof-weight" placeholder="76" step="0.1" oninput="renderBMI()"></div>
+      <div class="field">
+        <label>Рабочий максимум — жим лёжа на 8–10 повт. (кг)</label>
+        <input type="number" id="prof-max" placeholder="80" step="2.5">
+        <div class="field-hint">Точка отсчёта стартовых весов во всех упражнениях</div>
+      </div>
+      <div class="bmi-card" id="bmi-card"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="saveProfile()">Сохранить</button>
+      <div class="prof-saved" id="prof-saved"></div>
+    </div>
+  </div>
+
   <div class="nav-bar" id="main-nav">
     <div class="nav-item active" onclick="switchNav('home',this)"><div class="nav-icon">🏠</div><div class="nav-label">Главная</div></div>
     <div class="nav-item" onclick="switchNav('history',this)"><div class="nav-icon">📋</div><div class="nav-label">История</div></div>
     <div class="nav-item" onclick="switchNav('editor',this)"><div class="nav-icon">✏️</div><div class="nav-label">Программа</div></div>
+    <div class="nav-item" onclick="switchNav('profile',this)"><div class="nav-icon">👤</div><div class="nav-label">Профиль</div></div>
   </div>
 </div>
 
@@ -590,6 +661,35 @@ async function deleteWorkout(id){
   // sets cascade-delete via FK (workouts ... on delete cascade)
   return sbRest('workouts?id=eq.' + encodeURIComponent(id), {method:'DELETE'});
 }
+async function getProfile(userId){
+  const r = await sbRest('profiles?select=*&id=eq.' + encodeURIComponent(userId));
+  if(r.error) return r;
+  const row = Array.isArray(r.data) ? r.data[0] : r.data;
+  return {data: row||null, error:null};
+}
+async function updateProfile(userId, patch){
+  return sbRest('profiles?id=eq.' + encodeURIComponent(userId), {method:'PATCH', body:patch});
+}
+async function authRecover(email){
+  const redirectTo = encodeURIComponent(location.origin + location.pathname);
+  let res;
+  try { res = await fetch(SUPABASE_URL + '/auth/v1/recover?redirect_to=' + redirectTo, {
+    method:'POST', headers:SB_HEADERS, body:JSON.stringify({email}) }); }
+  catch(e){ return {error:{message:'network: ' + e.message}}; }
+  if(!res.ok){ const d = await res.json().catch(()=>({}));
+    return {error:{message: d.error_description||d.msg||d.error||('HTTP '+res.status)}}; }
+  return {error:null};
+}
+async function authUpdatePassword(newPassword, token){
+  let res;
+  try { res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+    method:'PUT', headers:{...SB_HEADERS, 'Authorization':'Bearer ' + token},
+    body:JSON.stringify({password:newPassword}) }); }
+  catch(e){ return {data:null, error:{message:'network: ' + e.message}}; }
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok || data.error) return {data:null, error:{message: data.error_description||data.msg||data.error||('HTTP '+res.status)}};
+  return {data, error:null};
+}
 
 // ── EXERCISE DATABASE ─────────────────────────────────────────────────────
 const ALL_EXERCISES=[
@@ -697,6 +797,7 @@ let sessionExercises=null;
 let photoBase64=null;
 let db=null;
 let historyCache=[], currentHistWorkout=null;
+let userProfile=null, profSex=null, recoveryToken=null;
 
 // ── INDEXEDDB ─────────────────────────────────────────────────────────────
 function initDB(){
@@ -756,6 +857,40 @@ function showLoginModal(){document.getElementById('login-modal').classList.add('
 function closeLoginModal(){document.getElementById('login-modal').classList.remove('open');}
 function showRegModal(){document.getElementById('reg-modal').classList.add('open');}
 function closeRegModal(){document.getElementById('reg-modal').classList.remove('open');}
+function openRecoverModal(){ closeLoginModal(); const e=document.getElementById('auth-email').value; if(e) document.getElementById('recover-email').value=e; const m=document.getElementById('recover-msg'); m.style.display='none'; document.getElementById('recover-modal').classList.add('open'); }
+function closeRecoverModal(){ document.getElementById('recover-modal').classList.remove('open'); }
+async function sendRecover(){
+  const email=document.getElementById('recover-email').value.trim();
+  const msg=document.getElementById('recover-msg');
+  if(!email){ msg.style.color='var(--red)'; msg.textContent='Введи email'; msg.style.display='block'; return; }
+  msg.style.color='var(--text2)'; msg.textContent='Отправляю…'; msg.style.display='block';
+  const {error}=await authRecover(email);
+  if(error){ msg.style.color='var(--red)'; msg.textContent=error.message; return; }
+  msg.style.color='var(--green)'; msg.textContent='Письмо отправлено. Открой ссылку из письма на этом же устройстве.';
+}
+function showResetModal(){ const m=document.getElementById('reset-msg'); if(m) m.style.display='none'; document.getElementById('reset-modal').classList.add('open'); }
+async function submitNewPassword(){
+  const p1=document.getElementById('reset-pass').value, p2=document.getElementById('reset-pass2').value;
+  const msg=document.getElementById('reset-msg');
+  if(!p1||p1.length<6){ msg.style.color='var(--red)'; msg.textContent='Пароль минимум 6 символов'; msg.style.display='block'; return; }
+  if(p1!==p2){ msg.style.color='var(--red)'; msg.textContent='Пароли не совпадают'; msg.style.display='block'; return; }
+  if(!recoveryToken){ msg.style.color='var(--red)'; msg.textContent='Ссылка недействительна — запроси сброс заново'; msg.style.display='block'; return; }
+  msg.style.color='var(--text2)'; msg.textContent='Сохраняю…'; msg.style.display='block';
+  const {error}=await authUpdatePassword(p1, recoveryToken);
+  if(error){ msg.style.color='var(--red)'; msg.textContent=error.message; return; }
+  recoveryToken=null;
+  document.getElementById('reset-modal').classList.remove('open');
+  alert('Пароль изменён. Войди с новым паролем.');
+  showLoginModal();
+}
+function parseAuthHash(){
+  const h=location.hash;
+  if(!h||h.length<2) return null;
+  const p=new URLSearchParams(h.slice(1));
+  if(p.get('type')==='recovery' && p.get('access_token')) return {type:'recovery', token:p.get('access_token')};
+  if(p.get('error')) return {type:'error', message:p.get('error_description')||p.get('error')};
+  return null;
+}
 
 async function signIn(){
   const email=document.getElementById('auth-email').value,pass=document.getElementById('auth-password').value;
@@ -802,9 +937,21 @@ async function enterApp(session){
   await loadTemplates();
   buildHomeCards();
   await syncPending();
+  if(navigator.onLine){ const _p=await getProfile(currentUser.id); userProfile=_p.data||null; }
   loadHomeStats();loadLastWorkout();
 }
 (async function bootAuth(){
+  const ha = parseAuthHash();
+  if(ha && ha.type==='recovery'){
+    recoveryToken = ha.token;
+    history.replaceState(null,'',location.pathname);
+    showResetModal();
+    return;
+  }
+  if(ha && ha.type==='error'){
+    history.replaceState(null,'',location.pathname);
+    showAuthError(ha.message);
+  }
   const session = authRestore();
   if(session && session.access_token) await enterApp(session);
 })();
@@ -815,12 +962,13 @@ function switchNav(screen,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
   el.classList.add('active');
-  const titles={home:'GYM Buddy',history:'История',editor:'Программа'};
+  const titles={home:'GYM Buddy',history:'История',editor:'Программа',profile:'Профиль'};
   document.getElementById('topbar-title').textContent=titles[screen]||'GYM Buddy';
   document.getElementById('back-btn').style.display='none';
   document.getElementById('main-nav').style.display='flex';
   if(screen==='history') loadHistory();
   if(screen==='editor') renderEditor();
+  if(screen==='profile') loadProfile();
 }
 function navBack(){
   if(document.getElementById('screen-histdetail').classList.contains('active')){ backToHistory(); return; }
@@ -1339,6 +1487,7 @@ async function saveWorkout(){
   document.getElementById('photo-preview').style.display='none';
   document.querySelector('.photo-upload').style.display='block';
   photoBase64=null;
+  if(bw && navigator.onLine){ const _wv=parseFloat(bw); updateProfile(currentUser.id,{weight_kg:_wv}); if(userProfile) userProfile.weight_kg=_wv; }
   localStorage.removeItem('gym_draft');
   closeFinishModal();navBack();
   loadHomeStats();loadLastWorkout();
@@ -1506,6 +1655,44 @@ async function deleteHistWorkout(){
   }
   backToHistory();
   loadHomeStats();loadLastWorkout();
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────
+function intOrNull(v){ return (v!==''&&v!=null) ? parseInt(v) : null; }
+function floatOrNull(v){ return (v!==''&&v!=null) ? parseFloat(v) : null; }
+function bmiCategory(b){ if(b<18.5) return 'недостаток веса'; if(b<25) return 'норма'; if(b<30) return 'избыток веса'; return 'ожирение'; }
+function renderBMI(){
+  const h=parseFloat(document.getElementById('prof-height').value);
+  const w=parseFloat(document.getElementById('prof-weight').value);
+  const card=document.getElementById('bmi-card');
+  if(!h||!w){ card.innerHTML='<div class="bmi-empty">Укажи рост и вес — посчитаю ИМТ</div>'; return; }
+  const bmi=w/Math.pow(h/100,2);
+  card.innerHTML=`<div class="bmi-val">${bmi.toFixed(1)}</div><div class="bmi-cat">ИМТ · ${bmiCategory(bmi)}</div>`;
+}
+function setSex(s){ profSex=s; document.querySelectorAll('.sex-opt').forEach(b=>b.classList.toggle('active', b.dataset.sex===s)); }
+async function loadProfile(){
+  if(navigator.onLine){ const p=await getProfile(currentUser.id); userProfile=p.data||null; }
+  const p=userProfile||{};
+  document.getElementById('prof-height').value=p.height_cm||'';
+  document.getElementById('prof-weight').value=p.weight_kg||'';
+  document.getElementById('prof-max').value=p.working_max_kg||'';
+  setSex(p.sex||null);
+  document.getElementById('prof-saved').textContent='';
+  renderBMI();
+}
+async function saveProfile(){
+  const saved=document.getElementById('prof-saved');
+  if(!navigator.onLine){ saved.textContent='Нет сети — профиль сохраняется только онлайн'; saved.className='prof-saved err'; return; }
+  const patch={
+    sex: profSex||null,
+    height_cm: intOrNull(document.getElementById('prof-height').value),
+    weight_kg: floatOrNull(document.getElementById('prof-weight').value),
+    working_max_kg: floatOrNull(document.getElementById('prof-max').value)
+  };
+  const {error}=await updateProfile(currentUser.id, patch);
+  if(error){ saved.textContent='Ошибка: '+error.message; saved.className='prof-saved err'; return; }
+  userProfile={...(userProfile||{}), ...patch};
+  saved.textContent='Сохранено ✓'; saved.className='prof-saved ok';
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
